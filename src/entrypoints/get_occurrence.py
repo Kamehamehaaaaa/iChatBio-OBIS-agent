@@ -19,13 +19,16 @@ from ichatbio.types import AgentCard, AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
+from langchain.agents import tool
+from artifact_registry import ArtifactRegistry
+
 entrypoint= AgentEntrypoint(
     id="get_occurrence",
     description="Returns occurrence of species from OBIS",
     parameters=None
 )
 
-async def run(request: str, context: ResponseContext):
+async def get_occurrences_run(request: str, context: ResponseContext):
 
     # Start a process to log the agent's actions
     async with context.begin_process(summary="Searching Ocean Biodiversity Information System") as process:
@@ -58,6 +61,14 @@ async def run(request: str, context: ResponseContext):
         #     wkt = str(wkt)
         #     wkt_updated = wkt.replace("POLYGON ", "POLYGON")
         #     params["geometry"] = wkt_updated
+
+        if "areaid" in params:
+            matches = await utils.getAreaId(params.get("areaid"))
+            print(matches)
+            if len(matches) > 1:
+                await process.log("Multiple area matches found")
+                return
+            params["areaid"] = matches[0].get("areaid")
         
         await process.log("Generated search parameters", data=params)
 
@@ -81,8 +92,6 @@ async def run(request: str, context: ResponseContext):
             matching_count = response_json.get("total", 0)
             record_count = len(response_json.get("results", []))
 
-
-            #taxonid = response_json["results"][0]["infraorderid"]
 
             await process.log(
                 text=f"The API query using URL {url} returned {record_count} out of {matching_count} matching records in OBIS"

@@ -2,6 +2,7 @@ from agent import OBISAgent
 import asyncio
 from ichatbio.server import run_agent_server
 from ichatbio.agent_response import ResponseChannel, ResponseContext, ResponseMessage
+from utils import utils
 
 class InMemoryResponseChannel(ResponseChannel):
     """
@@ -39,8 +40,10 @@ async def main():
     print(messages)
 
 
+utils.setup()
 agent = OBISAgent()
 run_agent_server(agent, "localhost", 8990)
+utils.destroy()
 # userInput = input("Enter Search Query: \n")
 # asyncio.run(main())
 

@@ -24,5 +24,8 @@ In other cases `clarification_needed` is set to False.
 
 You **must not abuse this**, only use clarifications about the request when it is absolutely necessary.
 
-If you think you have a area or a region is specified in the user query, you have access to a `areas` python dictionary. It has mapping of areas and their ids. Chose the closest one you think that matches. If you are not able to figure out the closest match then return the possible matches in the `reason` and have `unresolved_params` and `clarification_needed` populated.
+<!-- If you think you have a area or a region is specified in the user query, you have access to a `areas` python list which has dictinaries with region and their areaid. It has mapping of areas and their ids. Chose the closest one you think that matches. If you are not able to figure out the closest match then return the possible matches in the `reason` and have `unresolved_params` as `areaid` and `clarification_needed` as `true` populated. -->
+
+If you think you have a area or a region is specified in the user query, send the region or area you identified confidently as a 
+value for key `areaid` in the `params` dictionary. Be confident in figuring out the area from the query. If you are not confident or confused populate the `reason` and have `areaid` in `unresolved_params`.
 
