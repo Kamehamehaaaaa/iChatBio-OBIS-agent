@@ -74,8 +74,9 @@ async def _generate_search_parameters(request: str, entrypoint: AgentEntrypoint,
 
     print(generation)
 
-    if len(generation['unresolved_params']) > 0:
-        await handleUnresolvedParams(entrypoint, generation)
+    # if len(generation['unresolved_params']) > 0:
+    #     await handleUnresolvedParams(entrypoint, generation)
+    print("returning from search params")
     return generation    
 
 async def get_country_from_request(request):
@@ -169,7 +170,6 @@ async def handleUnresolvedParams(entrypoint, generation):
         case "get_occurrences":
             for params in generation['unresolved_params']:
                 if params == 'areaid':
-                    
                     pass
         case _:
             pass

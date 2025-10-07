@@ -4,26 +4,9 @@ import yaml
 from urllib.parse import urlencode
 import requests
 from utils import utils
-
-areas = "{"
-
-def fetchAreaIds():
-    url = utils.generate_obis_url('area', None)
-    response = requests.get(url)
-
-    if response.ok:
-        results = response.json()['results']
-        for i in results:
-            areas+= i['name'] + ":" + i['id'] + ","
-
-    areas += "}"
-        
-    return
+import json
 
 def build_system_prompt(api):
-    if len(areas) < 2:
-        fetchAreaIds()
-    print(areas)
     SYSTEM_PROMPT_TEMPLATE = """
         {system_prompt}
 
@@ -33,7 +16,6 @@ def build_system_prompt(api):
     """
 
     system_prompt = importlib.resources.files().joinpath("../resources/system_prompt.md").read_text()
-    system_prompt += areas
     examples_doc = get_api_examples("src/resources/api_examples.md", api)
 
     prompt = SYSTEM_PROMPT_TEMPLATE.format(
