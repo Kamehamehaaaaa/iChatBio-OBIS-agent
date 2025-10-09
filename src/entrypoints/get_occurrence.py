@@ -28,11 +28,13 @@ entrypoint= AgentEntrypoint(
     parameters=None
 )
 
-async def get_occurrences_run(request: str, context: ResponseContext):
+async def run(request: str, context: ResponseContext):
 
     # Start a process to log the agent's actions
     async with context.begin_process(summary="Searching Ocean Biodiversity Information System") as process:
         process: IChatBioAgentProcess
+
+        await process.log("Original request: " + request)
 
         # place_res = await search.get_place_from_request(request)
         # wkt = ""
@@ -54,21 +56,24 @@ async def get_occurrences_run(request: str, context: ResponseContext):
             return
 
         await process.log("Initial params generated", data=params)
-        
-        # if "areaid" in params:
-        #     del params["areaid"]
-        #     await process.log(wkt)
-        #     wkt = str(wkt)
-        #     wkt_updated = wkt.replace("POLYGON ", "POLYGON")
-        #     params["geometry"] = wkt_updated
 
-        if "areaid" in params:
-            matches = await utils.getAreaId(params.get("areaid"))
+        if "area" in params:
+            matches = await utils.getAreaId(params.get("area"))
             print(matches)
             if len(matches) > 1:
                 await process.log("Multiple area matches found")
-                return
             params["areaid"] = matches[0].get("areaid")
+            del params["area"]
+
+        if "institute" in params:
+            print("here")
+            matches = await utils.getInstituteId(params)
+            print(matches)
+            # if matches and len(matches) > 1:
+            #     await process.log("Multiple institute matches found")
+            params["instituteid"] = matches[0].get("id")
+            del params["institute"]
+
         
         await process.log("Generated search parameters", data=params)
 
@@ -108,39 +113,6 @@ async def get_occurrences_run(request: str, context: ResponseContext):
                     "total_matching_count": matching_count
                 }
             )
-
-            await process.log("Querying for point data ")
-            url = utils.generate_obis_url("occurrence/points", params)
-            await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")
-
-            response = requests.get(url)
-            code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
-
-            if response.ok:
-                await process.log(f"Response code: {code}")
-            else:
-                await process.log(f"Response code: {code} - something went wrong!")
-                return
-
-            response_json = response.json()
-
-            record_count = len(response_json.get("coordinates", []))
-
-            await process.log(
-                text=f"The API query using URL {url} returned {record_count} points matching records in OBIS"
-            )
-
-            await process.create_artifact(
-                mimetype="application/json",
-                description="OBIS data for the prompt: " + request,
-                uris=[url],
-                metadata={
-                    "data_source": "OBIS",
-                    "portal_url": "portal_url",
-                    "retrieved_record_count": record_count,
-                }
-            )
-            await context.reply(f"I have successfully searched for occurrences and found {record_count} matching records. I've created an artifact with the results.")
 
         except InstructorRetryException as e:
             print(e)

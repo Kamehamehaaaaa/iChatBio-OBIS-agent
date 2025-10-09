@@ -5,6 +5,8 @@ from urllib.parse import urlencode
 import json
 import requests
 
+from fuzzywuzzy import fuzz, process
+
 def getValue(key):
     value = os.getenv(key)
 
@@ -73,21 +75,58 @@ def initializeAreaIds():
         
     return
 
+def initializeInstitutes():
+    institutes = []
+
+    url = generate_obis_url('institute', None)
+    response = requests.get(url)
+
+    if response.ok:
+        results = response.json()['results']
+        for i in results:
+            if i["id"] == None:
+                continue
+            if i["country"] != None:
+                i["name"] += " " + i["country"]
+            institutes.append(i)
+    
+    if len(institutes) > 0:
+        with open("institutes.json", "w", encoding="utf-8") as f:
+            json.dump(institutes, f, indent=2, ensure_ascii=False)
+    else:
+        print("No institutes")
+        
+    return
+
+def getData(path, queryType):
+    if os.path.exists(path) == False:
+        match queryType:
+            case "areaid":
+                initializeAreaIds()
+            case "institute":
+                initializeInstitutes()
+            case _:
+                pass
+
+    with open(path, "r") as f:
+        entity = json.load(f)
+
+    return entity
+
 def setup():
-    initializeAreaIds()
+    pass
 
 
 def destroy():
-    if os.path.exists("areaids.json"):
-        os.remove("areaids.json")
-        print(f"areaids.json deleted successfully.")
-    else:
-        print(f"areaids.json does not exist.")
+    paths = ["areaids.json", "institutes.json"]
+    for path in paths:
+        if os.path.exists(path):
+            os.remove(path)
+            print(f"{path} deleted successfully.")
 
 async def getAreaId(query):
-    with open("areaids.json", "r") as f:
-        areas = json.load(f)
-
+    areas = getData("areaids.json", "areaid")
+    
     query = query.lower()
     matches = [
         area for area in areas
@@ -95,3 +134,19 @@ async def getAreaId(query):
     ]
 
     return matches
+
+async def getInstituteId(query):
+    institutes = getData("institutes.json", "institute")
+
+    query_dict = {"name": query.get("institute").lower()}
+
+    if "area" in query:
+        query_dict["name"] = query_dict.get("name") + query.get("area").lower()
+
+    match, score = process.extractOne(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.ratio)
+
+    print(match, score)
+    if score > 60:
+        return [match]
+    else:
+        return [-1]

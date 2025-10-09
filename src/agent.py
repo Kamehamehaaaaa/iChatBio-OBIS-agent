@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from ichatbio.agent import IChatBioAgent
 from ichatbio.types import AgentCard
-from entrypoints import get_occurrence#, checklist, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
+from entrypoints import get_occurrence, facet#, checklist, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
 
 from ichatbio.agent_response import ResponseContext, IChatBioAgentProcess
 
@@ -28,7 +28,7 @@ class OBISAgent(IChatBioAgent):
                 # checklist.entrypoint,
                 # statistics.entrypoint,
                 # statistics_year.entrypoint,
-                # facet.entrypoint,
+                facet.entrypoint,
                 # institute.entrypoint,
                 # species_by_country.entrypoint
             ]
@@ -48,8 +48,8 @@ class OBISAgent(IChatBioAgent):
             #     await statistics.run(request, context)
             # case statistics_year.entrypoint.id:
             #     await statistics_year.run(request, context)
-            # case facet.entrypoint.id:
-            #     await facet.run(request, context)
+            case facet.entrypoint.id:
+                await facet.run(request, context)
             # case institute.entrypoint.id:
             #     await institute.run(request, context)
             # case species_by_country.entrypoint.id:

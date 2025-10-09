@@ -9,9 +9,9 @@ class occurrenceApi(BaseModel):
                                           examples=["Delphinus delphis", "Alosa pseudoharengus", "Brachyura"])
     taxonid: Optional[str] = Field(None, description="Taxon AphiaID.")
     datasetid: Optional[str] = Field(None, description="Dataset UUID.")
-    areaid: Optional[str] = Field(None, description="Area ID.")
-    instituteid: Optional[str] = Field(None, description="Institute ID.")
-    nodeid: Optional[str] = Field(None, description="Node UUID.")
+    areaid: Optional[str] = Field(None, description="Area ID. the OBIS area identifier. Its not the name of the place, area or region.")
+    instituteid: Optional[str] = Field(None, description="Institute ID. the OBIS institute identifier. It is not the name of the institute.")
+    nodeid: Optional[str] = Field(None, description="Node UUID. the OBIS node identifier")
     
     startdate: Optional[str] = Field(None, description="Start date formatted as YYYY-MM-DD. Fetch records after this date.")
     enddate: Optional[str] = Field(None, description="End date formatted as YYYY-MM-DD.")
@@ -48,6 +48,10 @@ class occurrenceApi(BaseModel):
     measurementvalueid: Optional[str] = Field(None, description="Measurement value ID to be present for occurrence.")
     measurementunit: Optional[str] = Field(None, description="Measurement unit to be present for occurrence.")
     measurementunitid: Optional[str] = Field(None, description="Measurement unit ID to be present for occurrence.")
+
+    #extra parameters which are not mentioned in api documentation. 
+    area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
+    institute: Optional[str] = Field(None, description="Name of the institute in the request.")
 
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):

@@ -72,6 +72,20 @@
 }
 ```
 
+## Example 6 - When request specifies region.
+
+```
+"Request": "Search for brachyura from Pacific"
+"Response": {
+    "params": {
+        "scientificname": "brachyura",
+        "area": "Pacific"
+    },
+    "clarification_needed": False,
+    "reason": "The user request specifies a infra order and a place or region (Pacific) hence I populated the response as expected."
+}
+```
+
 
 ### facet
 
@@ -82,7 +96,7 @@
 "Response": {
     "params": {
         "facets": "originalScientificName",
-        "areaid": ""
+        "areaid": "Pacific"
     },
     "unresolved_params": null,
     "clarification_needed": False,
