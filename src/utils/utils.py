@@ -141,7 +141,7 @@ async def getInstituteId(query):
     query_dict = {"name": query.get("institute").lower()}
 
     if "area" in query:
-        query_dict["name"] = query_dict.get("name") + query.get("area").lower()
+        query_dict["name"] = query_dict.get("name") + " " + query.get("area").lower()
 
     match, score = process.extractOne(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.ratio)
 

@@ -2,9 +2,10 @@ from typing import override, Optional, AsyncGenerator, AsyncIterator
 
 from pydantic import BaseModel
 
+import ichatbio
 from ichatbio.agent import IChatBioAgent
 from ichatbio.types import AgentCard
-from entrypoints import get_occurrence, facet#, checklist, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
+from entrypoints import get_occurrence, facet, dataset, institute#, checklist, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
 
 from ichatbio.agent_response import ResponseContext, IChatBioAgentProcess
 
@@ -30,13 +31,14 @@ class OBISAgent(IChatBioAgent):
                 # statistics_year.entrypoint,
                 facet.entrypoint,
                 # institute.entrypoint,
-                # species_by_country.entrypoint
+                # species_by_country.entrypoint,
+                dataset.entrypoint,
+                institute.entrypoint,
             ]
         )
 
     @override
     async def run(self, context: ResponseContext, request: str, entrypoint: str, params: Optional[BaseModel]):
-
         match entrypoint:
             case get_occurrence.entrypoint.id:
                 await get_occurrence.run(request, context)
@@ -50,10 +52,12 @@ class OBISAgent(IChatBioAgent):
             #     await statistics_year.run(request, context)
             case facet.entrypoint.id:
                 await facet.run(request, context)
-            # case institute.entrypoint.id:
-            #     await institute.run(request, context)
+            case institute.entrypoint.id:
+                await institute.run(request, context)
             # case species_by_country.entrypoint.id:
             #     await species_by_country.run(request, context)
+            case dataset.entrypoint.id:
+                await dataset.run(request, context)
             case _:
                 raise ValueError()
         await context.reply("OBIS query completed")

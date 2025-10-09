@@ -24,6 +24,8 @@ def build_system_prompt(api):
         examples_doc=examples_doc,
     ).strip()
 
+    print(prompt)
+
     return prompt
 
 def get_api_examples(file_path: str, api_name: str) -> str:
@@ -41,4 +43,4 @@ def get_api_examples(file_path: str, api_name: str) -> str:
     section = parts[1]
     section = section.split("### ", 1)[0].strip()
 
-    return f"{marker}\n{section}"
+    return f"{section}"
