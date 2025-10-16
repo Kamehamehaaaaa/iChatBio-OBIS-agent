@@ -86,6 +86,34 @@
 }
 ```
 
+## Example 7 - When request specifies institute.
+
+```
+"Request": "Search for crabs from CSIRO Australia"
+"Response": {
+    "params": {
+        "scientificname": "brachyura",
+        "institute": "CSIRO Australia"
+    },
+    "clarification_needed": False,
+    "reason": "The user request specifies crab which have a infra order brachyura and a institute (CSIRO Australia) hence I populated the response as expected."
+}
+```
+
+## Example 8 - When request specifies institute and area.
+
+```
+"Request": "Search for Egregia menziesii from CSIRO in Australia"
+"Response": {
+    "params": {
+        "scientificname": "brachyura",
+        "institute": "CSIRO Australia"
+    },
+    "clarification_needed": False,
+    "reason": "The user request specifies Egregia menziesii which is a and a institute (CSIRO Australia) hence I populated the response as expected."
+}
+```
+
 
 ### facet
 
@@ -95,8 +123,8 @@
 "Request": "how many occurrence records there are for each species in the pacific region."
 "Response": {
     "params": {
-        "facets": "originalScientificName",
-        "areaid": "Pacific"
+        "facets": ["originalScientificName"],
+        "area": "Pacific"
     },
     "unresolved_params": null,
     "clarification_needed": False,

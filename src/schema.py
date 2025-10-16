@@ -109,80 +109,14 @@ class datasetApi(BaseModel):
             except ValueError:
                 continue
         raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
-
+    
+class datasetLookupApi(BaseModel):
+    id: str = Field(None, description="dataset id",
+                              examples=["00000002-3cef-4bc1-8540-2c20b4798855"])
 
 class occurrenceLookupApi(BaseModel):
     id: Optional[str] = Field(None, description="occurrence record id",
                               examples=["00000002-3cef-4bc1-8540-2c20b4798855"])
-
-class checklistApi(BaseModel):
-    scientificname: Optional[str] = Field(None, 
-                                          description="full scientific name", 
-                                          examples=["Delphinus delphis", "Alosa pseudoharengus"])
-    taxonid: Optional[str] = Field(None, description="Taxon AphiaID.")
-    datasetid: Optional[str] = Field(None, description="dataset UUID")
-    startdate: Optional[str] = Field(None, 
-                                     description="Start date of query. Fetch records after this date. Should be of format YYYY-MM-DD")
-    enddate: Optional[str] = Field(None, 
-                                   description="End date of query. Fetch records before this date. Should be of format YYYY-MM-DD. Should be greater than startdate")
-    areaid: Optional[str] = Field(None, description="")
-    instituteid: Optional[str] = Field(None, description="")
-    nodeid: Optional[str] = Field(None, description="")
-    startdepth: Optional[int] = Field(None, 
-                                      description="start depth of creature instance recorded in meters")
-    enddepth: Optional[int] = Field(None, description="")
-    geometry: Optional[str] = Field(None, description="")
-    absence: Optional[str] = Field(None, 
-                                   description="Include absence records (include) or get absence records exclusively (true).")
-
-    @field_validator('startdate', 'enddate')
-    def validate_date_format(cls, value):
-        allowed_formats = ["%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y"]
-        for format in allowed_formats:
-            try:
-                dt = datetime.strptime(value, format)
-                return dt.strftime("%Y-%m-%d")
-            except ValueError:
-                continue
-        raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
-    
-
-class statisticsApi(BaseModel):
-    scientificname: Optional[Annotated[str, Field(description="Scientific name. Leave empty to include all taxa.")]] = None
-    taxonid: Optional[Annotated[str, Field(description="Taxon AphiaID.")]] = None
-    areaid: Optional[Annotated[str, Field(description="Area ID.")]] = None
-    datasetid: Optional[Annotated[str, Field(description="Dataset UUID.")]] = None
-    nodeid: Optional[Annotated[str, Field(description="Node UUID.")]] = None
-
-    startdate: Optional[Annotated[str, Field(description="Start date formatted as YYYY-MM-DD.")]] = None
-    enddate: Optional[Annotated[str, Field(description="End date formatted as YYYY-MM-DD.")]] = None
-
-    startdepth: Optional[Annotated[int, Field(ge=0, description="Start depth, in meters (must be >= 0).")]] = None
-    enddepth: Optional[Annotated[int, Field(ge=0, description="End depth, in meters (must be >= 0).")]] = None
-
-    geometry: Optional[Annotated[str, Field(description="Geometry, formatted as WKT or GeoHash.")]] = None
-
-    redlist: Optional[Annotated[bool, Field(description="Red List species only.")]] = None
-    hab: Optional[Annotated[bool, Field(description="HAB species only.")]] = None
-    wrims: Optional[Annotated[bool, Field(description="WRiMS species only.")]] = None
-
-    dropped: Optional[Annotated[Literal["include", "true"], Field(description="Include dropped records or only dropped.")]] = None
-    absence: Optional[Annotated[Literal["include", "true"], Field(description="Include absence records or only absence.")]] = None
-
-    flags: Optional[Annotated[str, Field(description="Comma-separated list of quality flags to include.")]] = None
-    exclude: Optional[Annotated[str, Field(description="Comma-separated list of quality flags to exclude.")]] = None
-
-    @field_validator('startdate', 'enddate')
-    def validate_date_format(cls, value):
-        allowed_formats = ["%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y"]
-        for format in allowed_formats:
-            try:
-                dt = datetime.strptime(value, format)
-                return dt.strftime("%Y-%m-%d")
-            except ValueError:
-                continue
-        raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
-    
 
 class facetsAPIParams(BaseModel):
     facets: list = Field(None, description="Comma separated list of facets", examples= ["originalScientificName,flags", "node_id"])
@@ -295,15 +229,3 @@ class instituteApi(BaseModel):
             except ValueError:
                 continue
         raise ValueError("Incorrect date format. Allowed: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
-
-
-class countryFromRequest(BaseModel):
-    country: str = Field(None,
-                         description="Country specified in the request",
-                         examples=["USA", "India", "Canada"])
-    
-
-class placeFromRequest(BaseModel):
-    place: str = Field(None,
-                         description="place or region specified in the request",
-                         examples=["Pacific Region", "USA", "Atlantic"])

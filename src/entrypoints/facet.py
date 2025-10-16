@@ -39,6 +39,17 @@ async def run(request: str, context: ResponseContext):
             await process.log("Error generating params.")
 
             return
+        
+        params = params["params"]
+        
+        if "area" in params or ("areaid" in params and type(params["areaid"]) != int):
+            matches = await utils.getAreaId(params.get("areaid"))
+            print(matches)
+            if len(matches) > 1:
+                await process.log("Multiple area matches found")
+            params["areaid"] = matches[0].get("areaid")
+            if "area" in params:
+                del params["area"]
 
         await process.log("search parameters", data=params)
 

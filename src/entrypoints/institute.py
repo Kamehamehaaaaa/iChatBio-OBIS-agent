@@ -14,9 +14,20 @@ from ichatbio.types import AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
+description = """
+Get institute wise number of records from OBIS. 
+It only returns the institutions that pass the query and the number of records that satisfy the conditions.
+
+Sample queries:
+1. Get all the institutes which have records of brachyura.
+2. Get number of records of Egregia menziesi from all institutes in Australia.
+
+A query that needs summarized information and not records from OBIS should be directed here.
+"""
+
 entrypoint= AgentEntrypoint(
     id="institute",
-    description="Get institute information from OBIS. Queries like 'get institutes which have records of brachyura' is resolved here.",
+    description=description,
     parameters=None
 )
 
@@ -45,25 +56,16 @@ async def run(request: str, context: ResponseContext):
 
         if "area" in params:
             matches = await utils.getAreaId(params.get("area"))
+            print("area matches")
             print(matches)
             if len(matches) == 0:
                 await process.log("Area not resolved")
+                return
             else:
                 if len(matches) > 1:
                     await process.log("Multiple area matches found")
                 params["areaid"] = matches[0].get("areaid")
             del params["area"]
-
-        if "institute" in params:
-            matches = await utils.getInstituteId(params)
-            print(matches)
-            if len(matches) == 0:
-                await process.log("Area not resolved")
-            else:
-                if len(matches) > 1:
-                    await process.log("Multiple area matches found")
-                params["instituteid"] = matches[0].get("id")
-            del params["institute"]
 
         
         await process.log("Generated search parameters", data=params)
@@ -107,4 +109,4 @@ async def run(request: str, context: ResponseContext):
 
         except InstructorRetryException as e:
             print(e)
-            await process.log("Sorry, I couldn't find any species datasets.")
+            await process.log("Sorry, I couldn't find any institutes.")

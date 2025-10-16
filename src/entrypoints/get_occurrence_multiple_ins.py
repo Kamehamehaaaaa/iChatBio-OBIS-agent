@@ -35,7 +35,7 @@ Here are some examples:
 """
 
 entrypoint= AgentEntrypoint(
-    id="get_occurrence",
+    id="get_occurrence_2",
     description=description,
     parameters=None
 )
@@ -52,14 +52,9 @@ async def run(request: str, context: ResponseContext):
         
         try:
             llmResponse = await search._generate_search_parameters(request, entrypoint, occurrenceApi)
-            params = llmResponse['params']
             if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
-                exception = 1
-                if unresolved := llmResponse.get('unresolved_params', ''):
-                    if 'institute' in params and 'instituteid' in unresolved:
-                        exception = 0
-                if exception:
-                    raise Exception(llmResponse['reason'])
+                raise Exception(llmResponse['reason'])
+            params = llmResponse['params']
         except Exception as e:
             await utils.exceptionHandler(process, e, "Error generating obis parameters.")
             return
@@ -86,19 +81,10 @@ async def run(request: str, context: ResponseContext):
 
         if "institute" in params:
             institutes = await utils.getInstituteId(params)
-            if institutes[0].get("score") < 0.95:
-                institute = ""+institutes[0].get("name", "")
-                if len(institutes) == 0:
-                    await process.log("OBIS doesn't have any institutes named " + params["institute"])
-                    return
-                if len(institutes) > 1:
-                    for i in institutes:
-                        institute += ", " + i.get("name", "")
-                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
-                                            "They are " + institute
-                    await process.log(ret_log)
-                    return
-            params["instituteid"] = institutes[0].get("id")
+            # print(institutes)
+            # if matches and len(matches) > 1:
+            #     await process.log("Multiple institute matches found")
+            # params["instituteid"] = match.get("id")
             del params["institute"]
 
         
@@ -108,32 +94,75 @@ async def run(request: str, context: ResponseContext):
         try:
 
             urls = []
-            
-            url = utils.generate_obis_url("occurrence", params)
-            urls.append(url)
+            matching_count = 0
+            record_count = 0
+            institutes_list = ""
 
-            await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")
+            if len(institutes) > 0:
+                records = {"total":0, "records": {}}
 
-            response = requests.get(url)
-            code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
+                for institute in institutes:
+                    params["instituteid"] = institute.get("id")
+                    institutes_list += institute["name"] + ","
+                
+                    url = utils.generate_obis_url("occurrence", params)
+                    urls.append(url)
+                    await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")
 
-            if response.ok:
-                await process.log(f"Response code: {code}")
+                    response = requests.get(url)
+                    code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
+
+                    if response.ok:
+                        await process.log(f"Response code: {code}")
+                    else:
+                        await process.log(f"Response code: {code} - something went wrong!")
+                        return
+                    
+                    response_json = response.json()
+
+                    records["records"][institute.get("name")] = response_json.get("results", [])
+                
+                    matching_count += response_json.get("total", 0)
+                    record_count += len(response_json.get("results", []))
+
+                records["total"] = matching_count
+
+                await process.log(
+                    text=f"The API query returned {record_count} out of {matching_count} matching records in OBIS"
+                )
+
+                # print(records)
+
+                content = json.dumps(records).encode("utf-8")
+                artifact_description = "OBIS has " + str(len(institutes)) + " matching with the query input of institute name. " + \
+                                        "They are " + institutes_list + "Retrieve 10 records for each of them."
+
             else:
-                await process.log(f"Response code: {code} - something went wrong!")
-                return
+                url = utils.generate_obis_url("occurrence", params)
+                urls.append(url)
+
+                await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")
+
+                response = requests.get(url)
+                code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
+
+                if response.ok:
+                    await process.log(f"Response code: {code}")
+                else:
+                    await process.log(f"Response code: {code} - something went wrong!")
+                    return
+                
+                response_json = response.json()
             
-            response_json = response.json()
-        
-            matching_count = response_json.get("total", 0)
-            record_count = len(response_json.get("results", []))
+                matching_count = response_json.get("total", 0)
+                record_count = len(response_json.get("results", []))
 
-            await process.log(
-                text=f"The API query returned {record_count} out of {matching_count} matching records in OBIS"
-            )
+                await process.log(
+                    text=f"The API query returned {record_count} out of {matching_count} matching records in OBIS"
+                )
 
-            content = None
-            artifact_description = "OBIS returned the following data for the query: " + request
+                content = None
+                artifact_description = "OBIS returned the following data for the query: " + request
 
             await process.create_artifact(
                 mimetype="application/json",

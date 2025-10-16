@@ -24,7 +24,7 @@ def build_system_prompt(api):
         examples_doc=examples_doc,
     ).strip()
 
-    print(prompt)
+    # print(prompt)
 
     return prompt
 

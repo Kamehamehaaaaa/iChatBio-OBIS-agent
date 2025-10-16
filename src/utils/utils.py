@@ -5,7 +5,11 @@ from urllib.parse import urlencode
 import json
 import requests
 
-from fuzzywuzzy import fuzz, process
+# from fuzzywuzzy import fuzz, process
+from rapidfuzz import fuzz, process
+from sentence_transformers import SentenceTransformer, util
+import torch
+import numpy as np
 
 def getValue(key):
     value = os.getenv(key)
@@ -20,6 +24,7 @@ def getValue(key):
 
 def generate_obis_url(api, payload):
     obis_url = "https://api.obis.org/"
+    # payload = payload["params"]
     if api == "facet":
         tmp = payload["facets"]
         facets = tmp[0]
@@ -138,15 +143,71 @@ async def getAreaId(query):
 async def getInstituteId(query):
     institutes = getData("institutes.json", "institute")
 
-    query_dict = {"name": query.get("institute").lower()}
+    query_dict = {"name": query.get("institute")}
 
     if "area" in query:
-        query_dict["name"] = query_dict.get("name") + " " + query.get("area").lower()
+        query_dict["name"] = query_dict.get("name") + " " + query.get("area")
 
-    match, score = process.extractOne(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.ratio)
+    # match, score = process.extract(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.token_set_ratio)
 
-    print(match, score)
-    if score > 60:
-        return [match]
+    matches = await hybrid_match(query=query_dict, institutes=institutes)
+    print(matches)
+    return matches
+
+# function to get best match
+async def fn(query, choice):
+    if choice == None:
+        return 0
+    q_tokens = query.split(' ')
+    c_tokens = choice.split(' ')
+    ret = 0
+
+    for i in q_tokens:
+        if i in c_tokens:
+            ret+=1
+
+    if ret > 0:
+        print(choice)
+    
+    return ret
+
+
+async def exceptionHandler(p, e, descr):
+    if e != None:
+        await p.log(str(e) +" "+ descr)
     else:
-        return [-1]
+        await p.log(descr)
+    return
+
+
+async def hybrid_match(query, institutes, best_n = 5):
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    names = [i["name"] for i in institutes]
+    query_token_len = float(len(query["name"].split(" ")))
+    
+    # Embedding scores
+    q_emb = model.encode(query["name"], convert_to_tensor=True)
+    inst_embs = model.encode(names, convert_to_tensor=True)
+    emb_scores = util.cos_sim(q_emb, inst_embs)[0].cpu().numpy()
+
+    # Fuzzy scores
+    fuzzy_scores = []
+    for n in names:
+        tp = ( await fn(query["name"], n)) / query_token_len
+        fuzzy_scores.append(tp)
+    
+    fuzzy_scores = np.array(fuzzy_scores)
+
+    # Weighted combination (50% semantic, 50% fuzzy)
+    hybrid_scores = 0.5 * emb_scores + 0.5 * fuzzy_scores
+
+    best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
+    best_matches = [
+        {
+            "id": institutes[i]["id"],
+            "name": institutes[i]["name"],
+            "score": float(hybrid_scores[i])
+        }
+        for i in best_ind
+    ]
+    return best_matches
