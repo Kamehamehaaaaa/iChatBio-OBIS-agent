@@ -59,9 +59,9 @@ class OBISAgent(IChatBioAgent):
             case dataset.entrypoint.id:
                 await dataset.run(request, context)
             case dataset_lookup.entrypoint.id:
-                await dataset.run(request, context)
+                await dataset_lookup.run(request, context)
             case institute_lookup.entrypoint.id:
-                await dataset.run(request, context)
+                await institute_lookup.run(request, context)
             case _:
                 raise ValueError()
         await context.reply("OBIS query completed")

@@ -16,7 +16,7 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="dataset",
-    description="Get dataset records from OBIS. Queries like 'get datasets which have records of brachyura' is resolved here.",
+    description="Get records of species from a dataset from OBIS. Queries like 'get datasets which have records of brachyura' is resolved here.",
     parameters=None
 )
 
