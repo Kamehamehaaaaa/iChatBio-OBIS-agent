@@ -151,7 +151,7 @@ async def getInstituteId(query):
     # match, score = process.extract(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.token_set_ratio)
 
     matches = await hybrid_match(query=query_dict, institutes=institutes)
-    print(matches)
+    # print(matches)
     return matches
 
 # function to get best match

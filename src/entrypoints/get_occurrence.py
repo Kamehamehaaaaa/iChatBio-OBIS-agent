@@ -84,19 +84,20 @@ async def run(request: str, context: ResponseContext):
 
         if "institute" in params:
             institutes = await utils.getInstituteId(params)
-            if institutes[0].get("score") < 0.95:
+            if len(institutes) == 0:
+                await process.log("OBIS doesn't have any institutes named " + params["institute"])
+                return
+            
+            if institutes[0].get("score") < 0.80:
                 institute = ""+institutes[0].get("name", "")
-                if len(institutes) == 0:
-                    await process.log("OBIS doesn't have any institutes named " + params["institute"])
-                    return
                 if len(institutes) > 1:
                     for i in institutes:
                         institute += ", " + i.get("name", "")
                     ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
-                                            "They are " + institute
+                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
+                                            " will be fetched" 
                     await process.log(ret_log)
-                    return
-            params["instituteid"] = institutes[0].get("id")
+            params["instituteid"] = institutes[0].get("id", "")
             del params["institute"]
 
         
