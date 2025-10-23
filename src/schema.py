@@ -111,8 +111,15 @@ class datasetApi(BaseModel):
         raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
     
 class datasetLookupApi(BaseModel):
-    id: str = Field(None, description="dataset id",
+    id: str = Field(None, description="dataset uuid from the request.",
                               examples=["00000002-3cef-4bc1-8540-2c20b4798855"])
+    
+class instituteLookupApi(BaseModel):
+    id: str = Field(None, description="institute id",
+                              examples=["19482"])
+    #extra parameters which are not mentioned in api documentation. 
+    area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
+    institute: Optional[str] = Field(None, description="Name of the institute in the request.")
 
 class occurrenceLookupApi(BaseModel):
     id: Optional[str] = Field(None, description="occurrence record id",

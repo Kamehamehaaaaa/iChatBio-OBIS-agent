@@ -270,3 +270,63 @@
     "reason": "the user specifies the scientific name and date ranges."
 }
 ```
+
+### dataset_lookup
+
+## Example 1 - When the request has a dataset uuid.
+
+```
+"Request": "Get the information for dataset with UUID efa02fe9-6b5b-4173-85e7-912f71921fe7"
+"Response": {
+    "params": {
+        "id": "efa02fe9-6b5b-4173-85e7-912f71921fe7"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request specified a dataset uuid hence populated the params with it."
+}
+```
+
+## Example 2 - When the request doesn't specify uuid.
+
+```
+"Request": "Get the information for australian dataset"
+"Response": {
+    "params": {},
+    "unresolved_params": ["id"],
+    "clarification_needed": True,
+    "reason" : "The user request didn't specify a required dataset uuid."
+}
+```
+
+
+### institute_lookup
+
+## Example 1 - When the request has a institute id.
+
+```
+"Request": "Get the information for institute with id 19482"
+"Response": {
+    "params": {
+        "id": "19482"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request specified a institute id hence populated the params with it."
+}
+```
+
+## Example 2 - When the request specify institute name or area.
+
+```
+"Request": "Get information for Wildlife institute of India"
+"Response": {
+    "params": {
+        "institute": "Wildlife institute of India",
+        "area": "India"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request specifies institute name and area ehnce populated it."
+}
+```
