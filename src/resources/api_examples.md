@@ -130,6 +130,36 @@
 }
 ```
 
+## Example 10 - When the request doesn't have a species common or scientific name.
+
+```
+"Request": "Get records from Marine Institute of Australia"
+"Response": {
+    "params": {
+        "institute": "Marine institute of Australia",
+        "area": "Australia"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request includes a institute and area from query hence filled with confidence."
+}
+```
+
+## Example 11 - When the request doesn't have a species common or scientific name.
+
+```
+"Request": "Get all records from dataset with uuid efa02fe9-6b5b-4173-85e7-912f71921fe7"
+"Response": {
+    "params": {
+        "datasetid": "efa02fe9-6b5b-4173-85e7-912f71921fe7",
+        "size": 10000
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request includes a dataset uuid and specifies all records hence populated params with datasetid and size as 10000 (max limit of api)."
+}
+```
+
 ### facet
 
 ## Example 1 - When the request has a scientific name.

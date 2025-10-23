@@ -40,7 +40,7 @@ class occurrenceApi(BaseModel):
     
     fields: Optional[str] = Field(None, description="Fields to be included in the result set.")
     after: Optional[str] = Field(None, description="Occurrence UUID up to which to skip.")
-    size: Optional[int] = Field(None, description="Response size.")
+    size: Optional[int] = Field(None, description="Response size. Maximum value is 10000.")
     
     measurementtype: Optional[str] = Field(None, description="Measurement type to be present for occurrence.")
     measurementtypeid: Optional[str] = Field(None, description="Measurement type ID to be present for occurrence.")
@@ -63,6 +63,10 @@ class occurrenceApi(BaseModel):
             except ValueError:
                 continue
         raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
+
+    @field_validator('size')
+    def validate_size(cls,value):
+        return min(10000, value)
 
 
 class datasetApi(BaseModel):
