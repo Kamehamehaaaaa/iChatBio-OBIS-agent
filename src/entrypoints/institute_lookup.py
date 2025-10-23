@@ -3,7 +3,7 @@ import utils
 
 from instructor.core import InstructorRetryException
 
-from schema import datasetLookupApi
+from schema import instituteLookupApi
 
 import requests
 import http
@@ -15,8 +15,8 @@ from utils import search_helper as search
 from utils import utils
 
 entrypoint= AgentEntrypoint(
-    id="dataset_lookup",
-    description="Retrieve information about a specific 'dataset' from OBIS. Requires the UUID of the dataset sepcifically.",
+    id="institute_lookup",
+    description="Retrieve information about a specific 'institute' from OBIS.",
     parameters=None
 )
 
@@ -28,10 +28,10 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Original request: " + request)
 
-        await process.log("Generating search parameters for dataset records")
+        await process.log("Generating search parameters for institute information")
         
         try:
-            llmResponse = await search._generate_search_parameters(request, entrypoint, datasetLookupApi)
+            llmResponse = await search._generate_search_parameters(request, entrypoint, instituteLookupApi)
             if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
                 raise Exception(llmResponse['reason'])
             params = llmResponse['params']
