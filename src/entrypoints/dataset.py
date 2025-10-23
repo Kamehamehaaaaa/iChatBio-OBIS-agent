@@ -1,7 +1,7 @@
 from ichatbio.types import AgentEntrypoint
 import utils
 
-from instructor.exceptions import InstructorRetryException
+from instructor.core import InstructorRetryException
 
 from schema import datasetApi
 

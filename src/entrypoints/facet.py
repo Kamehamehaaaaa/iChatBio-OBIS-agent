@@ -3,7 +3,7 @@ import utils
 from openai import OpenAI, AsyncOpenAI
 
 import instructor
-from instructor.exceptions import InstructorRetryException
+from instructor.core import InstructorRetryException
 
 from schema import facetsAPIParams
 from tenacity import AsyncRetrying

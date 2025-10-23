@@ -1,4 +1,4 @@
-from typing import override, Optional, AsyncGenerator, AsyncIterator
+from typing import Optional, AsyncGenerator, AsyncIterator
 
 from pydantic import BaseModel
 
@@ -17,7 +17,6 @@ class OBISAgent(IChatBioAgent):
     def __init__(self):
         super().__init__()
 
-    @override
     def get_agent_card(self) -> AgentCard:
         return AgentCard(
             name="Ocean Biodiversity Information Systems data source",
@@ -37,7 +36,6 @@ class OBISAgent(IChatBioAgent):
             ]
         )
 
-    @override
     async def run(self, context: ResponseContext, request: str, entrypoint: str, params: Optional[BaseModel]):
         match entrypoint:
             case get_occurrence.entrypoint.id:

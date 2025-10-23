@@ -4,7 +4,7 @@ import utils
 from openai import OpenAI, AsyncOpenAI
 
 import instructor
-from instructor.exceptions import InstructorRetryException
+from instructor.core import InstructorRetryException
 
 from schema import occurrenceApi
 from tenacity import AsyncRetrying
@@ -19,10 +19,8 @@ from ichatbio.types import AgentCard, AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
-from langchain.agents import tool
-from artifact_registry import ArtifactRegistry
-
-import json
+# from langchain.agents import tool
+# from artifact_registry import ArtifactRegistry
 
 description = """
 Retrieve occurrence records of species from OBIS matching query criteria. 
