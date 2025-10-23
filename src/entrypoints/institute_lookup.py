@@ -16,7 +16,7 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="institute_lookup",
-    description="Retrieve information about a specific 'institute' from OBIS.",
+    description="Retrieve information about a specific 'institute' from OBIS. Queries like get number of records at an institute are resolved here.",
     parameters=None
 )
 
@@ -60,7 +60,7 @@ async def run(request: str, context: ResponseContext):
                                             "They are " + institute + ". Information about " + institutes[0].get("name", "") + \
                                             " will be fetched"
                     await process.log(ret_log)
-            params["instituteid"] = institutes[0].get("id", "")
+            params["id"] = institutes[0].get("id", "")
             del params["institute"]
             if "area" in params:
                 del params["area"]

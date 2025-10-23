@@ -39,7 +39,7 @@ def generate_obis_url(api, payload):
 
 def generate_obis_extension_url(api, payload, extensionParam, paramsRequired):
     if extensionParam in payload:
-        extensionValue = payload.pop(extensionParam)
+        extensionValue = str(payload.pop(extensionParam))
     else:
         extensionValue = 2024
 

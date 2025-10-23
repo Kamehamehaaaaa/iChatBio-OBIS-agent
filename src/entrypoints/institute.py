@@ -15,7 +15,7 @@ from utils import search_helper as search
 from utils import utils
 
 description = """
-Get institute wise number of records from OBIS. 
+Get institute wise number of species records from OBIS. 
 It only returns the institutions that pass the query and the number of records that satisfy the conditions.
 
 Sample queries:
