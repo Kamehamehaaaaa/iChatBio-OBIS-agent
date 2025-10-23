@@ -54,17 +54,40 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Initial params generated", data=params)
 
+        if "institute" in params:
+            institutes = await utils.getInstituteId(params)
+            if len(institutes) == 0:
+                await process.log("OBIS doesn't have any institutes named " + params["institute"])
+                return
+
+            if institutes[0].get("score") < 0.80:
+                institute = ""+institutes[0].get("name", "")
+                if len(institutes) > 1:
+                    for i in institutes:
+                        institute += ", " + i.get("name", "")
+                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
+                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
+                                            " will be fetched"
+                    await process.log(ret_log)
+            params["instituteid"] = institutes[0].get("id", "")
+            del params["institute"]
+            if "area" in params:
+                del params["area"]
+
         if "area" in params:
             matches = await utils.getAreaId(params.get("area"))
             print("area matches")
             print(matches)
             if len(matches) == 0:
-                await process.log("Area not resolved")
+                await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                 return
-            else:
-                if len(matches) > 1:
-                    await process.log("Multiple area matches found")
-                params["areaid"] = matches[0].get("areaid")
+            if len(matches) > 1:
+                await process.log("Multiple area matches found")
+            areas = ""+matches[0].get("areaid")
+            for match in matches[1:]:
+                areas+=","
+                areas+=match.get("areaid")
+            params["areaid"] = areas
             del params["area"]
 
         
