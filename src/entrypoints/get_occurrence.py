@@ -64,6 +64,30 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Initial params generated", data=params)
 
+        # when area and institute in request institute gets higher priority"
+
+        institutes = []
+
+        if "institute" in params:
+            institutes = await utils.getInstituteId(params)
+            if len(institutes) == 0:
+                await process.log("OBIS doesn't have any institutes named " + params["institute"])
+                return
+
+            if institutes[0].get("score") < 0.80:
+                institute = ""+institutes[0].get("name", "")
+                if len(institutes) > 1:
+                    for i in institutes:
+                        institute += ", " + i.get("name", "")
+                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
+                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
+                                            " will be fetched"
+                    await process.log(ret_log)
+            params["instituteid"] = institutes[0].get("id", "")
+            del params["institute"]
+            if "area" in params:
+                del params["area"]
+
         if "area" in params:
             matches = await utils.getAreaId(params.get("area"))
             print("area matches")
@@ -79,26 +103,6 @@ async def run(request: str, context: ResponseContext):
                 areas+=match.get("areaid")
             params["areaid"] = areas
             del params["area"]
-
-        institutes = []
-
-        if "institute" in params:
-            institutes = await utils.getInstituteId(params)
-            if len(institutes) == 0:
-                await process.log("OBIS doesn't have any institutes named " + params["institute"])
-                return
-            
-            if institutes[0].get("score") < 0.80:
-                institute = ""+institutes[0].get("name", "")
-                if len(institutes) > 1:
-                    for i in institutes:
-                        institute += ", " + i.get("name", "")
-                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
-                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
-                                            " will be fetched" 
-                    await process.log(ret_log)
-            params["instituteid"] = institutes[0].get("id", "")
-            del params["institute"]
 
         
         await process.log("Generated search parameters", data=params)

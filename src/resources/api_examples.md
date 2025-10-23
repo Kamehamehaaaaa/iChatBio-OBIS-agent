@@ -114,6 +114,21 @@
 }
 ```
 
+## Example 9 - When the request has a common name and institute.
+
+```
+"Request": "Search for dolphins from marine institute of australia"
+"Response": {
+    "params": {
+        "scientificname": "Delphinidae",
+        "institute": "Marine institute of Australia",
+        "area": "Australia"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request includes a common name but from my knowledge I populated scienticName as Delphinidae and institute and area from query with confidence."
+}
+```
 
 ### facet
 
