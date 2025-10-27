@@ -50,6 +50,11 @@ async def run(request: str, context: ResponseContext):
         
         try:
             llmResponse = await search._generate_search_parameters(request, entrypoint, occurrenceApi)
+            if not llmResponse or "params" not in llmResponse:
+                exception = "Search parameters could not be generated from request."
+                if 'reason' in llmResponse:
+                    exception += llmResponse['reason']
+                raise Exception(exception)
             params = llmResponse['params']
             if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
                 exception = 1
@@ -70,14 +75,14 @@ async def run(request: str, context: ResponseContext):
 
         if "institute" in params:
             institutes = await utils.getInstituteId(params)
-            if len(institutes) == 0:
+            if not institutes or len(institutes) == 0:
                 await process.log("OBIS doesn't have any institutes named " + params["institute"])
                 return
-
+            
             if institutes[0].get("score") < 0.80:
                 institute = ""+institutes[0].get("name", "")
                 if len(institutes) > 1:
-                    for i in institutes:
+                    for i in institutes[1:]:
                         institute += ", " + i.get("name", "")
                     ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
                                             "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
@@ -117,16 +122,28 @@ async def run(request: str, context: ResponseContext):
 
             await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")
 
-            response = requests.get(url)
+            try:
+                response = requests.get(url, timeout=10)
+            except requests.exceptions.RequestException as e:
+                await process.log(f"Failed to connect to OBIS API: {e}")
+                await utils.exceptionHandler(e)
+                return
+            
             code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
 
             if response.ok:
-                await process.log(f"Response code: {code}")
+                await process.log(f"OBIS data retrived successfully: {code}")
             else:
-                await process.log(f"Response code: {code} - something went wrong!")
+                await process.log(f"OBIS returned error {response.status_code} - something went wrong!")
                 return
             
-            response_json = response.json()
+            try:
+                response_json = response.json()
+            except ValueError as e:
+                await process.log("Failed to decode OBIS response as JSON.")
+                await utils.exceptionHandler(e)
+                return
+
         
             matching_count = response_json.get("total", 0)
             record_count = len(response_json.get("results", []))
@@ -152,5 +169,4 @@ async def run(request: str, context: ResponseContext):
             )
 
         except InstructorRetryException as e:
-            print(e)
-            await process.log("Sorry, I couldn't find any species occurrences.")
+            await process.log("Sorry, information retrival failed.")
