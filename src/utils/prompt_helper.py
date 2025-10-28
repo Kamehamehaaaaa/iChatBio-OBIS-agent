@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 import requests
 from utils import utils
 import json
+from pathlib import Path
 
 def build_system_prompt(api):
     SYSTEM_PROMPT_TEMPLATE = """
@@ -15,7 +16,8 @@ def build_system_prompt(api):
         {examples_doc}
     """
 
-    system_prompt = importlib.resources.files().joinpath("../resources/system_prompt.md").read_text()
+    # system_prompt = importlib.resources.files().joinpath("../resources/system_prompt.md").read_text()
+    system_prompt = (Path(__file__).parent.parent / "resources" / "system_prompt.md").read_text()
     examples_doc = get_api_examples("src/resources/api_examples.md", api)
 
     prompt = SYSTEM_PROMPT_TEMPLATE.format(

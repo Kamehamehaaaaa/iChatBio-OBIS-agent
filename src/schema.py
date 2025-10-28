@@ -52,6 +52,7 @@ class occurrenceApi(BaseModel):
     #extra parameters which are not mentioned in api documentation. 
     area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
     institute: Optional[str] = Field(None, description="Name of the institute in the request.")
+    #commonname: Optional[str] = Field(None, description="Common name passed in the user query")
 
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):

@@ -50,6 +50,7 @@ async def run(request: str, context: ResponseContext):
         
         try:
             llmResponse = await search._generate_search_parameters(request, entrypoint, occurrenceApi)
+            
             if not llmResponse or "params" not in llmResponse:
                 exception = "Search parameters could not be generated from request."
                 if 'reason' in llmResponse:

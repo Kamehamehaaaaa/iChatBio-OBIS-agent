@@ -20,7 +20,27 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="facet",
-    description="Get record counts for one or more facets from OBIS.",
+    description="""
+        Get record counts for one or more facets from OBIS.
+        Use this endpoint when you want to obtain summary counts of occurrence records broken down by one or more attributes (facets) rather than retrieving the full list of records.
+        The API allows you to ask: “How many occurrences meet these filters?” and “How many occurrences do we have per value of this facet?” For example, you might ask for counts per year, per taxonomic rank (family or genus), per dataset, per institution, per area, or other relevant facets.
+        This is especially useful when you need an overview of data distribution — e.g., to identify hotspots, to check data volume for a particular group, or to decide which subset of data you might confidently query next.
+        The Facet API is more efficient than retrieving full occurrence lists when you dont actually need the full data, only counts or distributions.
+        Key features
+        Returns counts (per facet value) for one or more facet categories.
+        Allows you to explore the data at a higher level, e.g., “How many records by year?”, “Which dataset has the most records for my species?”, “Which institution holds the most data for this taxonomic group?”
+        When to use:
+            When you want to summarize rather than download raw records.
+            When you are exploring data coverage, deciding on which subset to retrieve, or doing a high-level check of data availability.
+            If the user asking about counts, distributions, or breakdowns
+        Limitations
+            It does not return the full occurrence records themselves (for that, use the occurrence endpoint).
+            The facet breakdown may be limited to certain predefined fields/facets that OBIS supports.
+        Example usage
+            Get counts of occurrence records for species X by year.
+            Get counts of records in area Y by dataset.
+            Compare numbers of records across institutions for a given taxonomic group.
+    """,
     parameters=None
 )
 
