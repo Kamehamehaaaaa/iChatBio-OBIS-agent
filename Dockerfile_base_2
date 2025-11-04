@@ -1,0 +1,26 @@
+FROM ubuntu:24.04
+
+# Install system dependencies as root
+RUN apt-get update -y \
+ && apt-get install -y \
+      postgresql \
+      libpq-dev \
+      python3-pip \
+      python3.12-venv \
+ && rm -rf /var/lib/apt/lists/*
+
+# Create nonroot user and home dir
+RUN adduser --disabled-password nonroot \
+ && mkdir /home/app \
+ && chown -R nonroot:nonroot /home/app
+
+WORKDIR /home/app
+
+# Create Python venv
+ENV VIRTUAL_ENV=/home/app/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Copy only requirements and install
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
