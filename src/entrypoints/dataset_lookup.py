@@ -43,6 +43,29 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Params generated", data=params)
 
+        if "datasetname" in params:
+            datasetFetchUrl, datasets = await utils.getDatasetId(params.get("datasetname"))
+            
+            if len(datasets) == 1:
+                params['datasetid'] = datasets[0][0]
+                del params['datasetname']
+            elif len(datasets) > 1:
+                utils.exceptionHandler(process, None, "Multiple datasets found for the given query")
+                content = "Multiple datasets matches found: " + datasets[0][1]
+                for i in datasets[1:]:
+                    content += ", "
+                    content += i[1]
+                await process.create_artifact(
+                    mimetype="application/json",
+                    description="multiple dataset matches found for the given query",
+                    uris=[datasetFetchUrl],
+                    metadata={
+                        "data_source": "OBIS",
+                        "portal_url": "portal_url",
+                    }, 
+                )
+                return
+
         await process.log("Querying OBIS")
         try:
             

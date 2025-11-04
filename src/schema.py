@@ -52,7 +52,8 @@ class occurrenceApi(BaseModel):
     #extra parameters which are not mentioned in api documentation. 
     area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
     institute: Optional[str] = Field(None, description="Name of the institute in the request.")
-    #commonname: Optional[str] = Field(None, description="Common name passed in the user query")
+    datasetname: Optional[str] = Field(None, description="name of the dataset specified in the query")
+    commonname: Optional[str] = Field(None, description="Common name passed in the user query")
 
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):
@@ -103,6 +104,8 @@ class datasetApi(BaseModel):
     #extra parameters which are not mentioned in api documentation. 
     area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
     institute: Optional[str] = Field(None, description="Name of the institute in the request.")
+    datasetname: Optional[str] = Field(None, description="name of the dataset specified in the query")
+    commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
 
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):
@@ -118,6 +121,7 @@ class datasetApi(BaseModel):
 class datasetLookupApi(BaseModel):
     id: str = Field(None, description="dataset uuid from the request.",
                               examples=["00000002-3cef-4bc1-8540-2c20b4798855"])
+    datasetname: Optional[str] = Field(None, description="name of the dataset specified in the query")
     
 class instituteLookupApi(BaseModel):
     id: Optional[str] = Field(None, description="institute id",
@@ -241,3 +245,10 @@ class instituteApi(BaseModel):
             except ValueError:
                 continue
         raise ValueError("Incorrect date format. Allowed: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
+
+
+class taxonApi(BaseModel):
+    id: int = Field(None, description="Taxon AphiaID.")
+    commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
+    scientificname: Optional[str] = Field(None, description="scientific name of the species")
+    annotationsrequested: Optional[bool] = Field(False, description="when the user request specifies scientific name annotations to be fetched from WoRMs")

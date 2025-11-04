@@ -29,3 +29,8 @@ You **must not abuse this**, only use clarifications about the request when it i
 If you think you have a area or a region is specified in the user query, send the region or area you identified confidently as a 
 value for key `area` in the `params` dictionary. Be confident in figuring out the area from the query. If you are not confident or confused populate the `reason` and have `areaid` in `unresolved_params`.
 
+If there is a dataset name specified in the query, and you confidently identify it as a dataset name then populate `datasetname` in the 
+`params` dictionary. Be confident in figuring out the dataset name from the query. If you are not confident or confused populate the `reason` and have `datasetid` in `unresolved_params`.
+
+If there is a common name of the species specified in the request, populate params with the scientific name of the species from your knowledge and if and only if your are CONFIDENT about this. If you have any ambuiguity or not sure of the scientific name populate 
+`commonname` with the name of the species from the request in  `params` dictionary. 

@@ -6,7 +6,7 @@ from openai import OpenAI, AsyncOpenAI
 import instructor
 from instructor.core import InstructorRetryException
 
-from schema import occurrenceApi
+from schema import taxonApi
 from tenacity import AsyncRetrying
 
 import requests
@@ -23,17 +23,12 @@ from utils import utils
 # from artifact_registry import ArtifactRegistry
 
 description = """
-Retrieve occurrence records of species from OBIS matching query criteria. 
-When query asks for species records and not just summary or total number of records direct them here.
-
-Here are some examples:
-- Get n records of a species from a area or place or region.
-- Get records of a species from an institute or dataset.
-- Records found in a geographic location during a period.
+Get Taxonomic records fo species based on their scientific name, common name or Taxon AphiaID.
+Can also be used to retireve scientific name annotations from WoRMs.
 """
 
 entrypoint= AgentEntrypoint(
-    id="get_occurrence",
+    id="taxon",
     description=description,
     parameters=None
 )
@@ -46,10 +41,10 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Original request: " + request)
 
-        await process.log("Generating search parameters for species occurrences")
+        await process.log("Generating search parameters for taxon api")
         
         try:
-            llmResponse = await search._generate_search_parameters(request, entrypoint, occurrenceApi)
+            llmResponse = await search._generate_search_parameters(request, entrypoint, taxonApi)
             
             if not llmResponse or "params" not in llmResponse:
                 exception = "Search parameters could not be generated from request."
@@ -58,12 +53,12 @@ async def run(request: str, context: ResponseContext):
                 raise Exception(exception)
             params = llmResponse['params']
             if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
-                exception = 1
-                if unresolved := llmResponse.get('unresolved_params', ''):
-                    if 'institute' in params and 'instituteid' in unresolved:
-                        exception = 0
-                if exception:
-                    raise Exception(llmResponse['reason'])
+                # exception = 1
+                # if unresolved := llmResponse.get('unresolved_params', ''):
+                #     if 'commonname' in params and 'id' in unresolved:
+                #         exception = 0
+                # if exception:
+                raise Exception(llmResponse['reason'])
         except Exception as e:
             await utils.exceptionHandler(process, e, "Error generating obis parameters.")
             return
@@ -71,67 +66,6 @@ async def run(request: str, context: ResponseContext):
         await process.log("Initial params generated", data=params)
 
         # when area and institute in request institute gets higher priority"
-
-        institutes = []
-
-        if "institute" in params:
-            institutes = await utils.getInstituteId(params)
-            if not institutes or len(institutes) == 0:
-                await process.log("OBIS doesn't have any institutes named " + params["institute"])
-                return
-            
-            if institutes[0].get("score") < 0.80:
-                institute = ""+institutes[0].get("name", "")
-                if len(institutes) > 1:
-                    for i in institutes[1:]:
-                        institute += ", " + i.get("name", "")
-                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
-                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
-                                            " will be fetched"
-                    await process.log(ret_log)
-            params["instituteid"] = institutes[0].get("id", "")
-            del params["institute"]
-            if "area" in params:
-                del params["area"]
-
-        if "area" in params:
-            matches = await utils.getAreaId(params.get("area"))
-            print("area matches")
-            print(matches)
-            if len(matches) == 0:
-                await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
-                return
-            if len(matches) > 1:
-                await process.log("Multiple area matches found")
-            areas = ""+matches[0].get("areaid")
-            for match in matches[1:]:
-                areas+=","
-                areas+=match.get("areaid")
-            params["areaid"] = areas
-            del params["area"]
-
-        if "datasetname" in params:
-            datasetFetchUrl, datasets = await utils.getDatasetId(params.get("datasetname"))
-            
-            if len(datasets) == 1:
-                params['datasetid'] = datasets[0][0]
-                del params['datasetname']
-            elif len(datasets) > 1:
-                utils.exceptionHandler(process, None, "Multiple datasets found for the given query")
-                content = "Multiple datasets matches found: " + datasets[0][1]
-                for i in datasets[1:]:
-                    content += ", "
-                    content += i[1]
-                await process.create_artifact(
-                    mimetype="application/json",
-                    description="multiple dataset matches found for the given query",
-                    uris=[datasetFetchUrl],
-                    metadata={
-                        "data_source": "OBIS",
-                        "portal_url": "portal_url",
-                    }, 
-                )
-                return
             
         if "commonname" in params:
             scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
@@ -162,7 +96,18 @@ async def run(request: str, context: ResponseContext):
 
             urls = []
             
-            url = utils.generate_obis_url("occurrence", params)
+            if params.get('annotationsrequested', False):
+                url = utils.generate_obis_url("taxon/annotations", params)
+            else:
+                if params.get('id', '') != '':
+                    url = utils.generate_obis_extension_url("taxon", params, "id", False)
+                elif params.get('scientificname', '') != '':
+                    url = utils.generate_obis_extension_url("taxon", params, "scientificname", False)
+                else:
+                    utils.exceptionHandler(process, None, "incorrect params generated")
+                    return
+
+                
             urls.append(url)
 
             await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")

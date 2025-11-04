@@ -1,7 +1,7 @@
 import importlib
 import os
 import yaml
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 import json
 import requests
 
@@ -39,7 +39,7 @@ def generate_obis_url(api, payload):
 
 def generate_obis_extension_url(api, payload, extensionParam, paramsRequired):
     if extensionParam in payload:
-        extensionValue = str(payload.pop(extensionParam))
+        extensionValue = quote(str(payload.pop(extensionParam)))
     else:
         extensionValue = 2024
 
@@ -210,4 +210,46 @@ async def hybrid_match(query, institutes, best_n = 5):
         }
         for i in best_ind
     ]
+    if best_matches[0].get("score", 0) < 0.5:
+        return []
     return best_matches
+
+
+async def getDatasetId(datasetname: str) -> str | list:
+    query = {}
+    query['q'] = datasetname
+    query['size'] = 10
+    query['skip'] = 0
+
+    url = generate_obis_url('dataset/search2', query)
+    response = requests.get(url)
+
+    response_json = response.json()
+
+    results = response_json.get("results", [])
+
+    if len(results) > 0:
+        return url, [[x.get('id', ''), x.get('title', '')] for x in results]
+
+    return url, None
+
+
+async def getScientificName(commonname: str) -> str | list:
+    query = {}
+    query['q'] = commonname
+    query['size'] = 10
+    query['skip'] = 0
+
+    url = generate_obis_url('taxon/search/common', query)
+    response = requests.get(url)
+
+    response_json = response.json()
+
+    results = response_json.get("results", [])
+
+    print(results)
+
+    if len(results) > 0:
+        return url, [[x.get('commonName', ''), x.get('scientificName', '')] for x in results]
+
+    return url, None

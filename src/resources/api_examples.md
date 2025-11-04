@@ -63,12 +63,14 @@
 ```
 "Request": "Search for fish"
 "Response": {
-    "params": null,
+    "params": {
+        "commonname": "fish"
+    },
     "unresolved_params": [
         "scientificname"
     ],
-    "clarification_needed": True,
-    "reason": "The user request specifies a common name and I'm not aware of the scientific name of the species."
+    "clarification_needed": False,
+    "reason": "The user request specifies a common name and populated the params with it. The agent will resolve it to scientific name."
 }
 ```
 
@@ -357,6 +359,20 @@
     },
     "unresolved_params": null,
     "clarification_needed": False,
-    "reason" : "The user request specifies institute name and area ehnce populated it."
+    "reason" : "The user request specifies institute name and area hence populated it."
+}
+```
+
+### taxon
+
+```
+"Request": "Show me the taxonomy for Atlantic cod."
+"Response": {
+    "params": {
+        "commonname": "Atlantic cod",
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request specifies a common name hence populated it."
 }
 ```

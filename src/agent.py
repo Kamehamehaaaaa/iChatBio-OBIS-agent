@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import ichatbio
 from ichatbio.agent import IChatBioAgent
 from ichatbio.types import AgentCard
-from entrypoints import get_occurrence, facet, dataset, institute, dataset_lookup, institute_lookup#, checklist, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
+from entrypoints import get_occurrence, facet, dataset, institute, dataset_lookup, institute_lookup, taxon#, checklist, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
 
 from ichatbio.agent_response import ResponseContext, IChatBioAgentProcess
 
@@ -35,6 +35,7 @@ class OBISAgent(IChatBioAgent):
                 institute.entrypoint,
                 dataset_lookup.entrypoint,
                 institute_lookup.entrypoint,
+                taxon.entrypoint,
             ]
         )
 
@@ -62,6 +63,8 @@ class OBISAgent(IChatBioAgent):
                 await dataset_lookup.run(request, context)
             case institute_lookup.entrypoint.id:
                 await institute_lookup.run(request, context)
+            case taxon.entrypoint.id:
+                await taxon.run(request, context)
             case _:
                 raise ValueError()
         await context.reply("OBIS query completed")
