@@ -47,7 +47,7 @@ async def run(request: str, context: ResponseContext):
 
         if "institute" in params:
             institutes = await utils.getInstituteId(params)
-            if len(institutes) == 0:
+            if institutes == None or len(institutes) == 0:
                 await process.log("OBIS doesn't have any institutes named " + params["institute"])
                 return
 
@@ -67,9 +67,9 @@ async def run(request: str, context: ResponseContext):
 
         if "area" in params:
             matches = await utils.getAreaId(params.get("area"))
-            print("area matches")
-            print(matches)
-            if len(matches) == 0:
+            # print("area matches")
+            # print(matches)
+            if matches == None or len(matches) == 0:
                 await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                 return
             if len(matches) > 1:

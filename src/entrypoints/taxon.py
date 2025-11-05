@@ -70,7 +70,7 @@ async def run(request: str, context: ResponseContext):
         if "commonname" in params:
             scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
 
-            print(scientificNames)
+            # print(scientificNames)
 
             if scientificNames == None or len(scientificNames) == 0:
                 await utils.exceptionHandler(process, None, f"No scientific names found for {params.get("commonname")}")

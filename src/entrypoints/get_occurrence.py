@@ -96,9 +96,9 @@ async def run(request: str, context: ResponseContext):
 
         if "area" in params:
             matches = await utils.getAreaId(params.get("area"))
-            print("area matches")
-            print(matches)
-            if len(matches) == 0:
+            # print("area matches")
+            # print(matches)
+            if not matches or len(matches) == 0:
                 await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                 return
             if len(matches) > 1:
@@ -112,6 +112,10 @@ async def run(request: str, context: ResponseContext):
 
         if "datasetname" in params:
             datasetFetchUrl, datasets = await utils.getDatasetId(params.get("datasetname"))
+
+            if not datasets or len(datasets) == 0:
+                await utils.exceptionHandler(process, None, "The dataset specified doesn't match any OBIS list of datasets")
+                return
             
             if len(datasets) == 1:
                 params['datasetid'] = datasets[0][0]
@@ -130,13 +134,12 @@ async def run(request: str, context: ResponseContext):
                         "data_source": "OBIS",
                         "portal_url": "portal_url",
                     }, 
+                    content=content
                 )
                 return
             
         if "commonname" in params:
             scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
-
-            print(scientificNames)
 
             if scientificNames == None or len(scientificNames) == 0:
                 await utils.exceptionHandler(process, None, f"No scientific names found for {params.get("commonname")}")

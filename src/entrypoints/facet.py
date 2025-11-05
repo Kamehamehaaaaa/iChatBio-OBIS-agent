@@ -54,22 +54,113 @@ async def run(request: str, context: ResponseContext):
         await process.log("Generating search parameters for species facet")
         
         try:
-            params = await search._generate_search_parameters(request, entrypoint, facetsAPIParams)
+            llmResponse = await search._generate_search_parameters(request, entrypoint, facetsAPIParams)
+            
+            if not llmResponse or "params" not in llmResponse:
+                exception = "Search parameters could not be generated from request."
+                if 'reason' in llmResponse:
+                    exception += llmResponse['reason']
+                raise Exception(exception)
+            params = llmResponse['params']
+            if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
+                exception = 1
+                if unresolved := llmResponse.get('unresolved_params', ''):
+                    if 'institute' in params and 'instituteid' in unresolved:
+                        exception = 0
+                if exception:
+                    raise Exception(llmResponse['reason'])
         except Exception as e:
-            await process.log("Error generating params.")
-
+            await utils.exceptionHandler(process, e, "Error generating obis parameters.")
             return
-        
-        params = params["params"]
-        
-        if "area" in params or ("areaid" in params and type(params["areaid"]) != int):
-            matches = await utils.getAreaId(params.get("areaid"))
-            print(matches)
-            if len(matches) > 1:
-                await process.log("Multiple area matches found")
-            params["areaid"] = matches[0].get("areaid")
+                
+        institutes = []
+
+        if "institute" in params:
+            institutes = await utils.getInstituteId(params)
+            if not institutes or len(institutes) == 0:
+                await process.log("OBIS doesn't have any institutes named " + params["institute"])
+                return
+            
+            if institutes[0].get("score") < 0.80:
+                institute = ""+institutes[0].get("name", "")
+                if len(institutes) > 1:
+                    for i in institutes[1:]:
+                        institute += ", " + i.get("name", "")
+                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
+                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
+                                            " will be fetched"
+                    await process.log(ret_log)
+            params["instituteid"] = institutes[0].get("id", "")
+            del params["institute"]
             if "area" in params:
                 del params["area"]
+
+        if "area" in params:
+            matches = await utils.getAreaId(params.get("area"))
+            # print("area matches")
+            # print(matches)
+            if not matches or len(matches) == 0:
+                await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+                return
+            if len(matches) > 1:
+                await process.log("Multiple area matches found")
+            areas = ""+matches[0].get("areaid")
+            for match in matches[1:]:
+                areas+=","
+                areas+=match.get("areaid")
+            params["areaid"] = areas
+            del params["area"]
+
+        if "datasetname" in params:
+            datasetFetchUrl, datasets = await utils.getDatasetId(params.get("datasetname"))
+
+            if not datasets or len(datasets) == 0:
+                await utils.exceptionHandler(process, None, "The dataset specified doesn't match any OBIS list of datasets")
+                return
+            
+            if len(datasets) == 1:
+                params['datasetid'] = datasets[0][0]
+                del params['datasetname']
+            elif len(datasets) > 1:
+                utils.exceptionHandler(process, None, "Multiple datasets found for the given query")
+                content = "Multiple datasets matches found: " + datasets[0][1]
+                for i in datasets[1:]:
+                    content += ", "
+                    content += i[1]
+                await process.create_artifact(
+                    mimetype="application/json",
+                    description="multiple dataset matches found for the given query",
+                    uris=[datasetFetchUrl],
+                    metadata={
+                        "data_source": "OBIS",
+                        "portal_url": "portal_url",
+                    }, 
+                    content=content
+                )
+                return
+            
+        if "commonname" in params:
+            scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
+
+            if scientificNames == None or len(scientificNames) == 0:
+                await utils.exceptionHandler(process, None, f"No scientific names found for {params.get("commonname")}")
+                return
+            
+            if len(scientificNames) == 1:
+                params['scientificname'] = scientificNames[0][1]
+                del params['commonname']
+            elif len(scientificNames) > 1:
+                # await utils.exceptionHandler(process, None, "Multiple scientific names found for the given species")
+                content = "Multiple scientific name matches found : \n " + scientificNames[0][0] + " -> " +scientificNames[0][1]
+                for i in scientificNames[1:(min(5, len(scientificNames)))]:
+                    content += "\n"
+                    content += i[0] + " -> " + i[1]
+                content += "\n"
+                content += f"Fetching records for {scientificNames[0][1]}"
+                
+                await process.log(content)
+                params['scientificname'] = scientificNames[0][1]
+                del params['commonname']
 
         await process.log("search parameters", data=params)
 

@@ -45,6 +45,10 @@ async def run(request: str, context: ResponseContext):
 
         if "datasetname" in params:
             datasetFetchUrl, datasets = await utils.getDatasetId(params.get("datasetname"))
+
+            if not datasets or len(datasets) == 0:
+                await utils.exceptionHandler(process, None, "The dataset specified doesn't match any OBIS list of datasets")
+                return
             
             if len(datasets) == 1:
                 params['datasetid'] = datasets[0][0]
@@ -65,7 +69,7 @@ async def run(request: str, context: ResponseContext):
                     }, 
                 )
                 return
-
+            
         await process.log("Querying OBIS")
         try:
             
