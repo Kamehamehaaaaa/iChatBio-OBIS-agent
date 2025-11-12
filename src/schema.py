@@ -49,6 +49,8 @@ class occurrenceApi(BaseModel):
     measurementunit: Optional[str] = Field(None, description="Measurement unit to be present for occurrence.")
     measurementunitid: Optional[str] = Field(None, description="Measurement unit ID to be present for occurrence.")
 
+    id: Optional[str] = Field(None, description="Used to fetch individual occurrence records. When this is populated ignore all other params.")
+
     #extra parameters which are not mentioned in api documentation. 
     area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
     institute: Optional[str] = Field(None, description="Name of the institute in the request.")
@@ -252,3 +254,45 @@ class taxonApi(BaseModel):
     commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
     scientificname: Optional[str] = Field(None, description="scientific name of the species")
     annotationsrequested: Optional[bool] = Field(False, description="when the user request specifies scientific name annotations to be fetched from WoRMs")
+
+
+class checklistApi(BaseModel):
+    scientificname: Optional[str] = Field(None, 
+                                          description="full scientific name", 
+                                          examples=["Delphinus delphis", "Alosa pseudoharengus"])
+    taxonid: Optional[str] = Field(None, description="Taxon AphiaID.")
+    startdate: Optional[str] = Field(None, 
+                                     description="Start date of query. Fetch records after this date. Should be of format YYYY-MM-DD")
+    enddate: Optional[str] = Field(None, 
+                                   description="End date of query. Fetch records before this date. Should be of format YYYY-MM-DD. Should be greater than startdate")
+    areaid: Optional[str] = Field(None, description="")
+    instituteid: Optional[str] = Field(None, description="")
+    nodeid: Optional[str] = Field(None, description="")
+    startdepth: Optional[int] = Field(None, 
+                                      description="start depth of creature instance recorded in meters")
+    enddepth: Optional[int] = Field(None, description="")
+    geometry: Optional[str] = Field(None, description="")
+    absence: Optional[str] = Field(None, 
+                                   description="Include absence records (include) or get absence records exclusively (true).")
+    redlist: Optional[bool] = Field(None, description="Red List species only, true/false.")
+    hab: Optional[bool] = Field(None, description="HAB species only, true/false.")
+    wrims: Optional[bool] = Field(None, description="WRiMS species only, true/false.")
+    flags: Optional[str] = Field(None, description="Comma separated list of quality flags which need to be set.")
+    exclude: Optional[str] = Field(None, description="Comma separated list of quality flags to be excluded.")
+    dropped: Optional[str] = Field(None, description="Include dropped records (include) or only dropped (true)")
+    
+    #extra parameters which are not mentioned in api documentation. 
+    area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
+    institute: Optional[str] = Field(None, description="Name of the institute in the request.")
+    commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
+
+    @field_validator('startdate', 'enddate')
+    def validate_date_format(cls, value):
+        allowed_formats = ["%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y"]
+        for format in allowed_formats:
+            try:
+                dt = datetime.strptime(value, format)
+                return dt.strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")

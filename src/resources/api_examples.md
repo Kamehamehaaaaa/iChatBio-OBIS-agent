@@ -162,6 +162,20 @@
 }
 ```
 
+## Example 12 - When request specifies an occurrence uuid
+
+```
+"Request": "Get occurrence record with id 0000039c-74cd-4e37-9bf8-848d560bf519 from australia from January 2020"
+"Response": {
+    "params": {
+        "id": "0000039c-74cd-4e37-9bf8-848d560bf519"
+    },
+    "unresolved_params":null,
+    "clarification_needed": False,
+    "reason": "User request specifies an occurrence unique id, hence populated with id and ignored all other params."
+}
+```
+
 ### facet
 
 ## Example 1 - When the request has a scientific name.

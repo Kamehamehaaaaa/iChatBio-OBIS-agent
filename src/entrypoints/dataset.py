@@ -36,9 +36,7 @@ async def run(request: str, context: ResponseContext):
                 raise Exception(llmResponse['reason'])
             params = llmResponse['params']
         except Exception as e:
-            print(e)
-            await process.log("Error generating params. " + e)
-
+            await utils.exceptionHandler(process, e, "Error generating params. ")
             return
 
         await process.log("Initial params generated", data=params)
@@ -54,7 +52,7 @@ async def run(request: str, context: ResponseContext):
             if institutes[0].get("score") < 0.80:
                 institute = ""+institutes[0].get("name", "")
                 if len(institutes) > 1:
-                    for i in institutes:
+                    for i in institutes[1:]:
                         institute += ", " + i.get("name", "")
                     ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
                                             "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
@@ -98,7 +96,11 @@ async def run(request: str, context: ResponseContext):
                 await process.log(f"Response code: {code} - something went wrong!")
                 return
             
-            response_json = response.json()
+            try:
+                response_json = response.json()
+            except ValueError as e:
+                await utils.exceptionHandler(process, e, "Failed to decode OBIS response as JSON.")
+                return
             
             matching_count = response_json.get("total", 0)
             record_count = len(response_json.get("results", []))

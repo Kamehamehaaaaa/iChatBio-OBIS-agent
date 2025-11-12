@@ -23,13 +23,14 @@ from utils import utils
 # from artifact_registry import ArtifactRegistry
 
 description = """
-Retrieve occurrence records of species from OBIS matching query criteria. 
+Retrieve occurrence records of species from OBIS matching query criteria. Also retrives an individual occurrence record.
 When query asks for species records and not just summary or total number of records direct them here.
 
 Here are some examples:
 - Get n records of a species from a area or place or region.
 - Get records of a species from an institute or dataset.
 - Records found in a geographic location during a period.
+- Get occurrence record with id 0000039c-74cd-4e37-9bf8-848d560bf519
 """
 
 entrypoint= AgentEntrypoint(
@@ -168,8 +169,11 @@ async def run(request: str, context: ResponseContext):
         try:
 
             urls = []
-            
-            url = utils.generate_obis_url("occurrence", params)
+
+            if "id" in params:
+                url = utils.generate_obis_extension_url("occurrence/", params, "id", False)
+            else:
+                url = utils.generate_obis_url("occurrence", params)
             urls.append(url)
 
             await process.log(f"Sending a GET request to the OBIS occurrence API at {url}")
@@ -205,7 +209,7 @@ async def run(request: str, context: ResponseContext):
             )
 
             content = None
-            artifact_description = "OBIS returned the following data for the query: " + request
+            artifact_description = "Occurrence records from OBIS"
 
             await process.create_artifact(
                 mimetype="application/json",
