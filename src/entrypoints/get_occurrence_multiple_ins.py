@@ -4,7 +4,7 @@ import utils
 from openai import OpenAI, AsyncOpenAI
 
 import instructor
-from instructor.exceptions import InstructorRetryException
+from instructor.core import InstructorRetryException
 
 from schema import occurrenceApi
 from tenacity import AsyncRetrying
