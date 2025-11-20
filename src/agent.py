@@ -29,8 +29,6 @@ class OBISAgent(IChatBioAgent):
                 # statistics.entrypoint,
                 # statistics_year.entrypoint,
                 facet.entrypoint,
-                # institute.entrypoint,
-                # species_by_country.entrypoint,
                 dataset.entrypoint,
                 institute.entrypoint,
                 dataset_lookup.entrypoint,
@@ -55,8 +53,6 @@ class OBISAgent(IChatBioAgent):
                 await facet.run(request, context)
             case institute.entrypoint.id:
                 await institute.run(request, context)
-            # case species_by_country.entrypoint.id:
-            #     await species_by_country.run(request, context)
             case dataset.entrypoint.id:
                 await dataset.run(request, context)
             case dataset_lookup.entrypoint.id:

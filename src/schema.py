@@ -1,6 +1,11 @@
 from pydantic import BaseModel, field_validator, Field, constr, conint
-from typing import Optional, Annotated, Literal, Required
+from typing import Optional, Annotated, Literal, Required, List
 from datetime import datetime
+
+class AnalyzeRequestResponse(BaseModel):
+    entrypoints: List[str] = Field(None, description="entrypoint that needs to be called to complete the user request. The entrypoint should be from the availbale list of entrypoints.")
+    next: Optional[str] = Field(None, description="after calling the entrypoint and getting its data, what next step should be taken to complete the user request. If you are not sure about this do not populate this feild.")
+    summary: Optional[str] = Field(None, description="use this to summarize why you chose this endpoint and what should be done next.")
 
 class occurrenceApi(BaseModel):
 
