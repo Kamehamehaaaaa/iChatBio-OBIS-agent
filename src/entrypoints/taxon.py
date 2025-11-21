@@ -68,31 +68,14 @@ async def run(request: str, context: ResponseContext):
         # when area and institute in request institute gets higher priority"
             
         if "commonname" in params:
-            scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
-
-            # print(scientificNames)
-
-            if scientificNames == None or len(scientificNames) == 0:
-                await utils.exceptionHandler(process, None, f"No scientific names found for {params.get("commonname")}")
+            if not await utils.resolveParams(params, 'commonname', 'id', process):
                 return
             
-            if len(scientificNames) == 1:
-                params['scientificname'] = scientificNames[0][1]
-                del params['commonname']
-            elif len(scientificNames) > 1:
-                # await utils.exceptionHandler(process, None, "Multiple scientific names found for the given species")
-                content = "Multiple scientific name matches found : \n " + scientificNames[0][0] + " -> " +scientificNames[0][1]
-                for i in scientificNames[1:(min(5, len(scientificNames)))]:
-                    content += "\n"
-                    content += i[0] + " -> " + i[1]
-                content += "\n"
-                content += f"Fetching records for {scientificNames[0][1]}"
-                
-                await process.log(content)
-                params['scientificname'] = scientificNames[0][1]
-                del params['commonname']
-
-        print("rohit ", params)
+        if params.get('childtaxonomy', False):
+            # we need taxon id for child taxonomy. if scientific name passed resolve it
+            if "id" not in params and "scientificname" in params:
+                if not await utils.resolveParams(params, 'scientificname', 'id', process):
+                    return
      
         await process.log("Generated search parameters", data=params)
 
@@ -103,13 +86,18 @@ async def run(request: str, context: ResponseContext):
             
             if params.get('annotationsrequested', False):
                 url = utils.generate_obis_url("taxon/annotations", params)
+            elif params.get('childtaxonomy', False):
+                if not params.get('id', False):
+                    await utils.exceptionHandler(process, None, "Taxon id missing. Can you please provide taxon id.")
+                    return
+                url = utils.generate_obis_url(f"taxon/{params.get('id')}/children", None)
             else:
                 if params.get('id', '') != '':
                     url = utils.generate_obis_extension_url("taxon", params, "id", False)
                 elif params.get('scientificname', '') != '':
                     url = utils.generate_obis_extension_url("taxon", params, "scientificname", False)
                 else:
-                    utils.exceptionHandler(process, None, "incorrect params generated")
+                    await utils.exceptionHandler(process, None, "incorrect params generated")
                     return
 
                 

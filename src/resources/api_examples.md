@@ -393,6 +393,37 @@
 }
 ```
 
+## Example 2 - When the request asks to get child taxonomies.
+
+```
+"Request": "Get child taxonomy of Atlantic cod."
+"Response": {
+    "params": {
+        "commonname": "Atlantic cod",
+        "childtaxonomy": True,
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request specifies a common name hence populated it and asks for child taxonomy too."
+}
+```
+
+## Example 3 - When the request asks to get child taxonomies.
+
+```
+"Request": "get child taxa of taxon Otariidae."
+"Response": {
+    "params": {
+        "scientificname": "Otariidae",
+        "childtaxonomy": True,
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request specifies a scientific name specifically a family (Otariidae) hence populated it and asks for child taxonomy too."
+}
+```
+get child taxa of taxon Otariidae
+
 
 ### checklist
 

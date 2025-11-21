@@ -253,3 +253,149 @@ async def getScientificName(commonname: str) -> str | list:
         return url, [[x.get('commonName', ''), x.get('scientificName', '')] for x in results]
 
     return url, None
+
+async def getTaxonIdFromScientificName(scientificname: str) -> list:
+    query = {}
+    query['q'] = scientificname
+    query['size'] = 10
+    query['skip'] = 0
+
+    url = generate_obis_url('taxon/search', query)
+    response = requests.get(url)
+
+    response_json = response.json()
+
+    results = response_json.get("results", [])
+
+    if len(results) > 0:
+        return [[x.get('taxonID', ''), x.get('scientificName', '')] for x in results]
+
+    return []
+
+async def resolveCommonName(commonname: str) -> str | list:
+    query = {}
+    query['q'] = commonname
+    query['size'] = 10
+    query['skip'] = 0
+
+    url = generate_obis_url('taxon/search/common', query)
+    response = requests.get(url)
+
+    response_json = response.json()
+
+    results = response_json.get("results", [])
+
+    if len(results) > 0:
+        return url, [[x.get('commonName', ''), x.get('taxonID', ''), x.get('scientificName', '')] for x in results]
+
+    return url, None
+
+
+async def resolveParams(params: dict, parameter: str, resolveToParam: str, process):
+    try:
+        match parameter:
+            case "commonname":
+                url, solution = await resolveCommonName(params.get("commonname"))
+
+                if solution == None or len(solution) == 0:
+                    await exceptionHandler(process, None, f"Not able to resolve {params.get("commonname")} to a scientific name or taxonID")
+                    return False
+                
+                if len(solution) > 1:
+                    # await utils.exceptionHandler(process, None, "Multiple scientific names found for the given species")
+                    content = "Multiple scientific name matches found for "+solution[0][0]+" : \n " + solution[0][2] + " with taxonID " +solution[0][1]
+                    for i in solution[1:(min(5, len(solution)))]:
+                        content += "\n"
+                        content += i[2] + " with taxonID " + i[1]
+                    content += "\n"
+                    content += f"Fetching records for {solution[0][2]}"
+                    
+                    await process.log(content)
+                params[resolveToParam] = solution[0][1]
+                del params['commonname']
+                return True
+            
+            case "datasetname":
+                datasetFetchUrl, datasets = await getDatasetId(params.get("datasetname"))
+
+                if not datasets or len(datasets) == 0:
+                    await exceptionHandler(process, None, "The dataset specified doesn't match any OBIS list of datasets")
+                    return False
+                
+                if len(datasets) > 1:
+                    # exceptionHandler(process, None, "Multiple datasets found for the given query")
+                    content = "Multiple datasets matches found: " + datasets[0][1]
+                    for i in datasets[1:]:
+                        content += ", "
+                        content += i[1]
+
+                    await process.log(content)
+
+                    # await process.create_artifact(
+                    #     mimetype="application/json",
+                    #     description="multiple dataset matches found for the given query",
+                    #     uris=[datasetFetchUrl],
+                    #     metadata={
+                    #         "data_source": "OBIS",
+                    #         "portal_url": "portal_url",
+                    #     }, 
+                    #     content=content
+                    # )
+                    # return False
+
+                params[resolveToParam] = datasets[0][0]
+                del params['datasetname']
+                return True
+            
+            case "institute":
+                institutes = await getInstituteId(params)
+                if not institutes or len(institutes) == 0:
+                    await process.log("OBIS doesn't have any institutes named " + params["institute"])
+                    return False
+                
+                if institutes[0].get("score") < 0.80:
+                    institute = ""+institutes[0].get("name", "")
+                    if len(institutes) > 1:
+                        for i in institutes[1:]:
+                            institute += ", " + i.get("name", "")
+                        ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
+                                                "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
+                                                " will be fetched"
+                        await process.log(ret_log)
+                params[resolveToParam] = institutes[0].get("id", "")
+                del params["institute"]
+                if "area" in params:
+                    del params["area"]
+                return True
+            
+            case "area":
+                matches = await getAreaId(params.get("area"))
+                # print("area matches")
+                # print(matches)
+                if not matches or len(matches) == 0:
+                    await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+                    return False
+                if len(matches) > 1:
+                    await process.log("Multiple area matches found")
+                areas = ""+matches[0].get("areaid")
+                for match in matches[1:]:
+                    areas+=","
+                    areas+=match.get("areaid")
+                params[resolveToParam] = areas
+                del params["area"]
+                return True
+            
+            case "scientificname":
+                ids = await getTaxonIdFromScientificName(params.get('scientificname', ''))
+                if not ids or len(ids) == 0:
+                    await exceptionHandler(process, None, "not able to resolve scientific name to taxon id.")
+                    return False
+                params[resolveToParam] = ids[0][0]
+                del params['scientificname']
+                return True
+            
+            case _:
+                raise ValueError()
+            
+    except ValueError as e:
+        await exceptionHandler(process, None, "OBIS agent encountered an error with parameter resolution")

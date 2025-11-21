@@ -254,7 +254,7 @@ class taxonApi(BaseModel):
     commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
     scientificname: Optional[str] = Field(None, description="scientific name of the species")
     annotationsrequested: Optional[bool] = Field(False, description="when the user request specifies scientific name annotations to be fetched from WoRMs")
-
+    childtaxonomy: Optional[bool] = Field(False, description="when the user request specifies to fetch child taxonomies of the species.")
 
 class checklistApi(BaseModel):
     scientificname: Optional[str] = Field(None, 
