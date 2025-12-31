@@ -16,7 +16,7 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="dataset_lookup",
-    description="Retrieve information about a specific 'dataset' from OBIS. Requires the UUID of the dataset sepcifically.",
+    description="Retrieve information about a specific 'dataset' from OBIS. UUID required",
     parameters=None
 )
 
@@ -28,7 +28,7 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Original request: " + request)
 
-        await process.log("Generating search parameters for dataset records")
+        await process.log("Generating search parameters for dataset lookup")
         
         try:
             llmResponse = await search._generate_search_parameters(request, entrypoint, datasetLookupApi)
@@ -36,23 +36,21 @@ async def run(request: str, context: ResponseContext):
                 raise Exception(llmResponse['reason'])
             params = llmResponse['params']
         except Exception as e:
-            print(e)
-            await process.log("Error generating params. " + e)
-
+            await process.log("Error generating params. " + str(e))
             return
 
         await process.log("Params generated", data=params)
 
-        if "datasetname" in params:
-            datasetFetchUrl, datasets = await utils.getDatasetId(params.get("datasetname"))
+        if "queryContent" in params:
+            datasetFetchUrl, datasets = await utils.getDatasetId(params.get("queryContent"))
 
             if not datasets or len(datasets) == 0:
                 await utils.exceptionHandler(process, None, "The dataset specified doesn't match any OBIS list of datasets")
                 return
             
             if len(datasets) == 1:
-                params['datasetid'] = datasets[0][0]
-                del params['datasetname']
+                params['id'] = datasets[0][0]
+                del params['queryContent']
             elif len(datasets) > 1:
                 utils.exceptionHandler(process, None, "Multiple datasets found for the given query")
                 content = "Multiple datasets matches found: " + datasets[0][1]

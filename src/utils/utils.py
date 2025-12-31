@@ -43,6 +43,8 @@ def generate_obis_extension_url(api, payload, extensionParam, paramsRequired):
     else:
         extensionValue = 2024
 
+    extensionValue = str(extensionValue)
+
     params = urlencode(payload)
     obis_url = "https://api.obis.org/"
     if paramsRequired:
@@ -296,17 +298,17 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
         match parameter:
             case "commonname":
                 url, solution = await resolveCommonName(params.get("commonname"))
-
+ 
                 if solution == None or len(solution) == 0:
                     await exceptionHandler(process, None, f"Not able to resolve {params.get("commonname")} to a scientific name or taxonID")
                     return False
                 
                 if len(solution) > 1:
                     # await utils.exceptionHandler(process, None, "Multiple scientific names found for the given species")
-                    content = "Multiple scientific name matches found for "+solution[0][0]+" : \n " + solution[0][2] + " with taxonID " +solution[0][1]
+                    content = "Multiple scientific name matches found for "+str(solution[0][0])+" : \n " + str(solution[0][2]) + " with taxonID " +str(solution[0][1])
                     for i in solution[1:(min(5, len(solution)))]:
                         content += "\n"
-                        content += i[2] + " with taxonID " + i[1]
+                        content += str(i[2]) + " with taxonID " + str(i[1])
                     content += "\n"
                     content += f"Fetching records for {solution[0][2]}"
                     

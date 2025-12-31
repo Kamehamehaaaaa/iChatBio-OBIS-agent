@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import ichatbio
 from ichatbio.agent import IChatBioAgent
 from ichatbio.types import AgentCard
-from entrypoints import get_occurrence, facet, dataset, institute, dataset_lookup, institute_lookup, taxon, checklist#, statistics, get_single_occurrence, statistics_year, facet, institute, species_by_country
+from entrypoints import get_occurrence, facet, dataset, institute, dataset_lookup, institute_lookup, taxon, checklist, statistics, dataset_search#, get_single_occurrence, statistics_year, facet, institute, species_by_country
 
 from ichatbio.agent_response import ResponseContext, IChatBioAgentProcess
 
@@ -26,11 +26,12 @@ class OBISAgent(IChatBioAgent):
                 get_occurrence.entrypoint,
                 # get_single_occurrence.entrypoint,
                 checklist.entrypoint,
-                # statistics.entrypoint,
+                statistics.entrypoint,
                 # statistics_year.entrypoint,
                 facet.entrypoint,
                 # institute.entrypoint,
                 # species_by_country.entrypoint,
+                dataset_search.entrypoint,
                 dataset.entrypoint,
                 institute.entrypoint,
                 dataset_lookup.entrypoint,
@@ -47,8 +48,8 @@ class OBISAgent(IChatBioAgent):
             #     await get_single_occurrence.run(request, context)
             case checklist.entrypoint.id:
                 await checklist.run(request, context)
-            # case statistics.entrypoint.id:
-            #     await statistics.run(request, context)
+            case statistics.entrypoint.id:
+                await statistics.run(request, context)
             # case statistics_year.entrypoint.id:
             #     await statistics_year.run(request, context)
             case facet.entrypoint.id:
@@ -59,6 +60,8 @@ class OBISAgent(IChatBioAgent):
             #     await species_by_country.run(request, context)
             case dataset.entrypoint.id:
                 await dataset.run(request, context)
+            case dataset_search.entrypoint.id:
+                await dataset_search.run(request, context)
             case dataset_lookup.entrypoint.id:
                 await dataset_lookup.run(request, context)
             case institute_lookup.entrypoint.id:
