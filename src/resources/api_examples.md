@@ -333,15 +333,45 @@
 }
 ```
 
-## Example 2 - When the request doesn't specify uuid.
+## Example 2 - When the request doesnt have UUID.
 
 ```
-"Request": "Get the information for australian dataset"
+"Request": "Get the information for Australian dataset"
 "Response": {
     "params": {},
     "unresolved_params": ["id"],
     "clarification_needed": True,
-    "reason" : "The user request didn't specify a required dataset uuid."
+    "reason" : "The user request doesn;t have UUID which is required."
+}
+```
+
+### dataset_search
+
+## Example 1 - When the request asks for location based.
+
+```
+"Request": "Get the information for Australian dataset"
+"Response": {
+    "params": {
+        "queryContent": "Australia"
+    },
+    "unresolved_params": ["id"],
+    "clarification_needed": False,
+    "reason" : "The user request asks for dataset in Australia hence populated query content with that."
+}
+```
+
+## Example 2 - When the request has come query content like contributor name.
+
+```
+"Request": "Datasets contributed by John Doe"
+"Response": {
+    "params": {
+        "queryContent": "John Doe"
+    },
+    "unresolved_params": ["id"],
+    "clarification_needed": False,
+    "reason" : "The user request asks for dataset contributed by John Doe hence populated query content with that."
 }
 ```
 
