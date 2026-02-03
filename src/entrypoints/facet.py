@@ -22,24 +22,39 @@ entrypoint= AgentEntrypoint(
     id="facet",
     description="""
         Get record counts for one or more facets from OBIS.
-        Use this endpoint when you want to obtain summary counts of occurrence records broken down by one or more attributes (facets) rather than retrieving the full list of records.
-        The API allows you to ask: “How many occurrences meet these filters?” and “How many occurrences do we have per value of this facet?” For example, you might ask for counts per year, per taxonomic rank (family or genus), per dataset, per institution, per area, or other relevant facets.
-        This is especially useful when you need an overview of data distribution — e.g., to identify hotspots, to check data volume for a particular group, or to decide which subset of data you might confidently query next.
-        The Facet API is more efficient than retrieving full occurrence lists when you dont actually need the full data, only counts or distributions.
-        Key features
-        Returns counts (per facet value) for one or more facet categories.
-        Allows you to explore the data at a higher level, e.g., “How many records by year?”, “Which dataset has the most records for my species?”, “Which institution holds the most data for this taxonomic group?”
+
+        Use this endpoint for exploratory, categorical breakdowns of occurrence records,
+        primarily to understand data coverage, availability, or distribution across
+        discrete attributes.
+
+        This endpoint answers questions such as:
+        - “How many records exist for each dataset, institution, or taxonomic group?”
+        - “Which categories contain the most data?”
+        - “How is data distributed across predefined facet values?”
+
+        The Facet API is intended for exploration and filtering decisions, not for
+        analytical summaries or statistical reporting.
+
         When to use:
-            When you want to summarize rather than download raw records.
-            When you are exploring data coverage, deciding on which subset to retrieve, or doing a high-level check of data availability.
-            If the user asking about counts, distributions, or breakdowns
-        Limitations
-            It does not return the full occurrence records themselves (for that, use the occurrence endpoint).
-            The facet breakdown may be limited to certain predefined fields/facets that OBIS supports.
-        Example usage
-            Get counts of occurrence records for species X by year.
-            Get counts of records in area Y by dataset.
-            Compare numbers of records across institutions for a given taxonomic group.
+        - When exploring data coverage or availability.
+        - When comparing counts across categorical dimensions (dataset, institution, area, taxonomic rank).
+        - When deciding which subset of data to retrieve next.
+
+        When NOT to use:
+        - Do NOT use this endpoint for analytical summaries, trends, or reporting-style
+        statistics (e.g., time-series analysis or semantic aggregations).
+        - For year-wise trends, temporal summaries, or structured statistical outputs,
+        prefer the Statistics API.
+
+        Limitations:
+        - Returns only simple facet counts.
+        - Does not perform statistical aggregation or analytical summaries.
+        - Facets are limited to predefined categorical fields.
+        
+        Example usage:
+        - Compare record counts across datasets for a species.
+        - Identify which institutions contribute most records.
+        - Explore data availability by taxonomic rank.
     """,
     parameters=None
 )

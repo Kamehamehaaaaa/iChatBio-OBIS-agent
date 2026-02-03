@@ -19,9 +19,24 @@ from ichatbio.types import AgentCard, AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
+description = """
+        Use this endpoint for analytical summaries and statistical aggregations
+        of OBIS occurrence data.
+
+        This endpoint should be preferred when:
+        - The user asks for trends over time (e.g., year-wise or decade-wise changes).
+        - The user wants structured statistical summaries rather than exploratory counts.
+        - The result is intended for reporting, analysis, or visualization.
+
+        Examples:
+        - Year-wise number of occurrences for a species.
+        - Temporal trends in species presence.
+        - Taxonomic composition summaries across time.
+"""
+
 entrypoint= AgentEntrypoint(
     id="statistics",
-    description="Returns number of occurrence of species from OBIS",
+    description=description,
     parameters=None
 )
 
@@ -76,39 +91,46 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Querying OBIS")
         try:
-            
-            url = utils.generate_obis_url("statistics", params)
-            await process.log(f"Sending a GET request to the OBIS statistics API at {url}")
+            extensions = params.get("statistics_extensions", [])
+            del params["statistics_extensions"]
+            urls = []
+            if len(extensions) == 0:
+                urls.append(utils.generate_obis_url("statistics", params))
+            for extension in extensions:
+                urls.append(utils.generate_obis_url("statistics/"+extension, params))
 
-            response = requests.get(url)
-            code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
+            for url in urls:
+                await process.log(f"Sending a GET request to the OBIS statistics API at {url}")
 
-            if response.ok:
-                await process.log(f"Response code: {code}")
-            else:
-                await process.log(f"Response code: {code} - something went wrong!")
-                return
-            
-            response_json = response.json()
+                response = requests.get(url)
+                code = f"{response.status_code} {http.client.responses.get(response.status_code, '')}"
 
-            await process.log(
-                text=f"The API query using URL {url} returned statistics for species from OBIS"
-            )
+                if response.ok:
+                    await process.log(f"Response code: {code}")
+                else:
+                    await process.log(f"Response code: {code} - something went wrong!")
+                    return
+                
+                response_json = response.json()
 
-            record_count = response_json.get("records", 0)
+                await process.log(
+                    text=f"The API query using URL {url} returned statistics for species from OBIS"
+                )
 
-            # await process.log(response_json)
+                record_count = len(response_json)
 
-            await process.create_artifact(
-                mimetype="application/json",
-                description="OBIS data for the prompt: " + request,
-                uris=[url],
-                metadata={
-                    "data_source": "OBIS",
-                    "portal_url": "portal_url",
-                    "retrieved_record_count": record_count
-                }
-            )
+                # await process.log(response_json)
+
+                await process.create_artifact(
+                    mimetype="application/json",
+                    description="OBIS data for the prompt: " + request,
+                    uris=[url],
+                    metadata={
+                        "data_source": "OBIS",
+                        "portal_url": "portal_url",
+                        "retrieved_record_count": record_count
+                    }
+                )
 
         except InstructorRetryException as e:
             print(e)

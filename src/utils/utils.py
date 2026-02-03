@@ -308,6 +308,8 @@ async def resolveCommonName(commonname: str) -> str | list:
 
     results = response_json.get("results", [])
 
+    # print(results, url)
+
     if len(results) > 0:
         ret = []
         for x in results:

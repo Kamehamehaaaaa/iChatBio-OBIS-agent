@@ -301,3 +301,63 @@ class checklistApi(BaseModel):
             except ValueError:
                 continue
         raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
+    
+class statisticsApi(BaseModel):
+    scientificname: Optional[Annotated[str, Field(description="Scientific name. Leave empty to include all taxa.")]] = None
+    taxonid: Optional[Annotated[str, Field(description="Taxon AphiaID.")]] = None
+    areaid: Optional[Annotated[str, Field(description="Area ID.")]] = None
+    datasetid: Optional[Annotated[str, Field(description="Dataset UUID.")]] = None
+    nodeid: Optional[Annotated[str, Field(description="Node UUID.")]] = None
+
+    startdate: Optional[Annotated[str, Field(description="Start date formatted as YYYY-MM-DD.")]] = None
+    enddate: Optional[Annotated[str, Field(description="End date formatted as YYYY-MM-DD.")]] = None
+
+    startdepth: Optional[Annotated[int, Field(ge=0, description="Start depth, in meters (must be >= 0).")]] = None
+    enddepth: Optional[Annotated[int, Field(ge=0, description="End depth, in meters (must be >= 0).")]] = None
+
+    geometry: Optional[Annotated[str, Field(description="Geometry, formatted as WKT or GeoHash.")]] = None
+
+    redlist: Optional[Annotated[bool, Field(description="Red List species only.")]] = None
+    hab: Optional[Annotated[bool, Field(description="HAB species only.")]] = None
+    wrims: Optional[Annotated[bool, Field(description="WRiMS species only.")]] = None
+
+    dropped: Optional[Annotated[Literal["include", "true"], Field(description="Include dropped records or only dropped.")]] = None
+    absence: Optional[Annotated[Literal["include", "true"], Field(description="Include absence records or only absence.")]] = None
+
+    flags: Optional[Annotated[str, Field(description="Comma-separated list of quality flags to include.")]] = None
+    exclude: Optional[Annotated[str, Field(description="Comma-separated list of quality flags to exclude.")]] = None
+
+    # extra parameters which are not mentioned in api documentation. 
+    area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
+    institute: Optional[str] = Field(None, description="Name of the institute in the request.")
+    commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
+
+    # extension for statistics api
+    statistics_extensions: Optional[
+            Annotated[
+                List[Literal["years", "taxonomy", "composition"]],
+                Field(
+                    description=(
+                        "Decide which OBIS statistics extensions are needed to answer the user's question. "
+                        "Choose one or more of the following values ONLY:\n"
+                        "- 'years': when the user asks about trends over time or year-wise counts\n"
+                        "- 'taxonomy': when the user asks about species, genus, or taxonomic breakdowns\n"
+                        "- 'composition': when the user asks about community structure or record composition\n"
+                        "If none apply, return an empty list."
+                    )
+                )
+            ]
+        ]
+
+
+    @field_validator('startdate', 'enddate')
+    def validate_date_format(cls, value):
+        allowed_formats = ["%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y"]
+        for format in allowed_formats:
+            try:
+                dt = datetime.strptime(value, format)
+                return dt.strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        raise ValueError("Incorrect date format. Allowed formats: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY")
+    
