@@ -163,7 +163,7 @@ Determine whether the response satisfies the user's request.
 Return JSON ONLY in this format:
 {{
   "satisfied": true/false,
-  "confidence": 0-1,
+  "confidence": ["high", "medium", "low"],
   "reason": "short explanation",
   "issues": ["issue1", "issue2"]
 }}
@@ -185,7 +185,7 @@ Return JSON ONLY in this format:
         except Exception:
             return {
                 "satisfied": False,
-                "confidence": 0.0,
+                "confidence": "low",
                 "reason": "LLM returned invalid JSON",
                 "issues": ["Invalid LLM output format"],
                 "raw_output": content
