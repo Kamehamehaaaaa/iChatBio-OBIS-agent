@@ -435,4 +435,4 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                 raise ValueError()
             
     except ValueError as e:
-        await exceptionHandler(process, None, "OBIS agent encountered an error with parameter resolution")
+        await exceptionHandler(process, e, "OBIS agent encountered an error with parameter resolution")
