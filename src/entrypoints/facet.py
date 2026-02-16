@@ -137,7 +137,7 @@ async def run(request: str, context: ResponseContext):
                 params['datasetid'] = datasets[0][0]
                 del params['datasetname']
             elif len(datasets) > 1:
-                utils.exceptionHandler(process, None, "Multiple datasets found for the given query")
+                await utils.exceptionHandler(process, None, "Multiple datasets found for the given query")
                 content = "Multiple datasets matches found: " + datasets[0][1]
                 for i in datasets[1:]:
                     content += ", "

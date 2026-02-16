@@ -24,10 +24,8 @@ class OBISAgent(IChatBioAgent):
             icon=None,
             entrypoints=[
                 get_occurrence.entrypoint,
-                # get_single_occurrence.entrypoint,
                 checklist.entrypoint,
                 statistics.entrypoint,
-                # statistics_year.entrypoint,
                 facet.entrypoint,
                 dataset.entrypoint,
                 institute.entrypoint,
@@ -41,14 +39,10 @@ class OBISAgent(IChatBioAgent):
         match entrypoint:
             case get_occurrence.entrypoint.id:
                 await get_occurrence.run(request, context)
-            # case get_single_occurrence.entrypoint.id:
-            #     await get_single_occurrence.run(request, context)
             case checklist.entrypoint.id:
                 await checklist.run(request, context)
             case statistics.entrypoint.id:
                 await statistics.run(request, context)
-            # case statistics_year.entrypoint.id:
-            #     await statistics_year.run(request, context)
             case facet.entrypoint.id:
                 await facet.run(request, context)
             case institute.entrypoint.id:

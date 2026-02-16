@@ -4,7 +4,7 @@ import utils
 from openai import OpenAI, AsyncOpenAI
 
 import instructor
-from instructor.exceptions import InstructorRetryException
+from instructor.core import InstructorRetryException
 
 from schema import statisticsApi
 from tenacity import AsyncRetrying
@@ -92,7 +92,8 @@ async def run(request: str, context: ResponseContext):
         await process.log("Querying OBIS")
         try:
             extensions = params.get("statistics_extensions", [])
-            del params["statistics_extensions"]
+            if "statistics_extensions" in params:
+                del params["statistics_extensions"]
             urls = []
             if len(extensions) == 0:
                 urls.append(utils.generate_obis_url("statistics", params))
@@ -111,7 +112,12 @@ async def run(request: str, context: ResponseContext):
                     await process.log(f"Response code: {code} - something went wrong!")
                     return
                 
-                response_json = response.json()
+                try:
+                    response_json = response.json()
+                except ValueError as e:
+                    await process.log("Failed to decode OBIS response as JSON.")
+                    await utils.exceptionHandler(process, e, "Failed to decode OBIS response as JSON.")
+                    return
 
                 await process.log(
                     text=f"The API query using URL {url} returned statistics for species from OBIS"

@@ -47,9 +47,7 @@ async def run(request: str, context: ResponseContext):
                 raise Exception(llmResponse['reason'])
             params = llmResponse['params']
         except Exception as e:
-            print(e)
-            await process.log("Error generating params. " + e)
-
+            await utils.exceptionHandler(process, e, "Error generating params. ")
             return
 
         await process.log("Initial params generated", data=params)

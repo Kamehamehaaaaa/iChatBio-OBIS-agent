@@ -36,9 +36,7 @@ async def run(request: str, context: ResponseContext):
                 raise Exception(llmResponse['reason'])
             params = llmResponse['params']
         except Exception as e:
-            print(e)
-            await process.log("Error generating params. " + e)
-
+            await utils.exceptionHandler(process, e, "Error generating params.")
             return
 
         await process.log("Initial Params generated", data=params)
@@ -54,7 +52,7 @@ async def run(request: str, context: ResponseContext):
             if institutes[0].get("score") < 0.80:
                 institute = ""+institutes[0].get("name", "")
                 if len(institutes) > 1:
-                    for i in institutes:
+                    for i in institutes[1:]:
                         institute += ", " + i.get("name", "")
                     ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
                                             "They are " + institute + ". Information about " + institutes[0].get("name", "") + \

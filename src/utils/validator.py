@@ -185,7 +185,7 @@ Return JSON ONLY in this format:
         except Exception:
             return {
                 "satisfied": False,
-                "confidence": "low",
+                "confidence": "high",
                 "reason": "LLM returned invalid JSON",
                 "issues": ["Invalid LLM output format"],
                 "raw_output": content
