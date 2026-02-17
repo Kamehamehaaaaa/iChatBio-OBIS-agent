@@ -61,64 +61,77 @@ async def run(request: str, context: ResponseContext):
 
         institutes = []
 
-        if "institute" in params:
-            institutes = await utils.getInstituteId(params)
-            if not institutes or len(institutes) == 0:
-                await process.log("OBIS doesn't have any institutes named " + params["institute"])
-                return
+        # if "institute" in params:
+        #     institutes = await utils.getInstituteId(params)
+        #     if not institutes or len(institutes) == 0:
+        #         await process.log("OBIS doesn't have any institutes named " + params["institute"])
+        #         return
             
-            if institutes[0].get("score") < 0.80:
-                institute = ""+institutes[0].get("name", "")
-                if len(institutes) > 1:
-                    for i in institutes[1:]:
-                        institute += ", " + i.get("name", "")
-                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
-                                            "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
-                                            " will be fetched"
-                    await process.log(ret_log)
-            params["instituteid"] = institutes[0].get("id", "")
-            del params["institute"]
-            if "area" in params:
-                del params["area"]
+        #     if institutes[0].get("score") < 0.80:
+        #         institute = ""+institutes[0].get("name", "")
+        #         if len(institutes) > 1:
+        #             for i in institutes[1:]:
+        #                 institute += ", " + i.get("name", "")
+        #             ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
+        #                                     "They are " + institute + ". Records for " + institutes[0].get("name", "") + \
+        #                                     " will be fetched"
+        #             await process.log(ret_log)
+        #     params["instituteid"] = institutes[0].get("id", "")
+        #     del params["institute"]
+        #     if "area" in params:
+        #         del params["area"]
+
+        # if "area" in params:
+        #     matches = await utils.getAreaId(params.get("area"))
+        #     # print("area matches")
+        #     # print(matches)
+        #     if not matches or len(matches) == 0:
+        #         await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+        #         return
+        #     if len(matches) > 1:
+        #         await process.log("Multiple area matches found")
+        #     areas = ""+matches[0].get("areaid")
+        #     for match in matches[1:]:
+        #         areas+=","
+        #         areas+=match.get("areaid")
+        #     params["areaid"] = areas
+        #     del params["area"]
+
+        # if "commonname" in params:
+        #     scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
+
+        #     if scientificNames == None or len(scientificNames) == 0:
+        #         await utils.exceptionHandler(process, None, f"No scientific names found for {params.get("commonname")}")
+        #         return
+            
+        #     if len(scientificNames) == 1:
+        #         params['scientificname'] = scientificNames[0][1]
+        #         del params['commonname']
+        #     elif len(scientificNames) > 1:
+        #         # await utils.exceptionHandler(process, None, "Multiple scientific names found for the given species")
+        #         content = "Multiple scientific name matches found : \n " + scientificNames[0][0] + " -> " +scientificNames[0][1]
+        #         for i in scientificNames[1:(min(5, len(scientificNames)))]:
+        #             content += "\n"
+        #             content += i[0] + " -> " + i[1]
+        #         content += "\n"
+        #         content += f"Fetching records for {scientificNames[0][1]}"
+                
+        #         await process.log(content)
+        #         params['scientificname'] = scientificNames[0][1]
+        #         del params['commonname']
+
+        if "institute" in params:
+            if not await utils.resolveParams(params, "institute", "instituteid", process):
+                return
 
         if "area" in params:
-            matches = await utils.getAreaId(params.get("area"))
-            # print("area matches")
-            # print(matches)
-            if not matches or len(matches) == 0:
-                await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+            if not await utils.resolveParams(params, "area", "areaid", process):
                 return
-            if len(matches) > 1:
-                await process.log("Multiple area matches found")
-            areas = ""+matches[0].get("areaid")
-            for match in matches[1:]:
-                areas+=","
-                areas+=match.get("areaid")
-            params["areaid"] = areas
-            del params["area"]
 
         if "commonname" in params:
-            scientificNameUrl, scientificNames = await utils.getScientificName(params.get("commonname"))
+            if not await utils.resolveParams(params, "commonname", "taxonid", process):
+                return 
 
-            if scientificNames == None or len(scientificNames) == 0:
-                await utils.exceptionHandler(process, None, f"No scientific names found for {params.get("commonname")}")
-                return
-            
-            if len(scientificNames) == 1:
-                params['scientificname'] = scientificNames[0][1]
-                del params['commonname']
-            elif len(scientificNames) > 1:
-                # await utils.exceptionHandler(process, None, "Multiple scientific names found for the given species")
-                content = "Multiple scientific name matches found : \n " + scientificNames[0][0] + " -> " +scientificNames[0][1]
-                for i in scientificNames[1:(min(5, len(scientificNames)))]:
-                    content += "\n"
-                    content += i[0] + " -> " + i[1]
-                content += "\n"
-                content += f"Fetching records for {scientificNames[0][1]}"
-                
-                await process.log(content)
-                params['scientificname'] = scientificNames[0][1]
-                del params['commonname']
 
         await process.log("Generated search parameters", data=params)
 
@@ -139,7 +152,7 @@ async def run(request: str, context: ResponseContext):
             
             response_json = response.json()
 
-            process.log(response_json)
+            # process.log(response_json)
             
             matching_count = response_json.get("total", 0)
             record_count = len(response_json.get("results", []))

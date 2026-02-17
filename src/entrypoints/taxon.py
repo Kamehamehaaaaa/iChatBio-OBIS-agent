@@ -92,7 +92,7 @@ async def run(request: str, context: ResponseContext):
                 params['scientificname'] = scientificNames[0][1]
                 del params['commonname']
 
-        print("rohit ", params)
+        # print("rohit ", params)
      
         await process.log("Generated search parameters", data=params)
 

@@ -415,7 +415,7 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                         params[resolveToParam] = areas
                         del params["area"]
                     else:
-                        for match in matches[1:]:
+                        for match in matches:
                             if match.get('areaid', '') != '':
                                 params[resolveToParam] = match.get('areaid', '')
                                 del params["area"]

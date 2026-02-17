@@ -162,6 +162,11 @@ class facetsAPIParams(BaseModel):
     flags: Optional[str] = Field(None, description="Comma separated list of quality flags which need to be set")
     exclude: Optional[str] = Field(None, description="Comma separated list of quality flags to be excluded")
 
+    area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
+    institute: Optional[str] = Field(None, description="Name of the institute in the request.")
+    datasetname: Optional[str] = Field(None, description="name of the dataset specified in the query")
+    commonname: Optional[str] = Field(None, description="Common name passed in the user query")
+
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):
         if value is None:
@@ -276,7 +281,7 @@ class checklistApi(BaseModel):
     startdepth: Optional[int] = Field(None, 
                                       description="start depth of creature instance recorded in meters")
     enddepth: Optional[int] = Field(None, description="")
-    geometry: Optional[str] = Field(None, description="")
+    geometry: Optional[str] = Field(None, description="Geometry, formatted as WKT or GeoHash. Polygon of a region provided in the query")
     absence: Optional[str] = Field(None, 
                                    description="Include absence records (include) or get absence records exclusively (true).")
     redlist: Optional[bool] = Field(None, description="Red List species only, true/false.")
@@ -289,7 +294,7 @@ class checklistApi(BaseModel):
     #extra parameters which are not mentioned in api documentation. 
     area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
     institute: Optional[str] = Field(None, description="Name of the institute in the request.")
-    commonname: Optional[str] = Field(None, description="common name of the species specified in the query")
+    commonname: Optional[str] = Field(None, description="Common name passed in the user query")
 
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):

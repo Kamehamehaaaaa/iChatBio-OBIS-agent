@@ -393,6 +393,20 @@
 }
 ```
 
+## Example 2 - When the request has a scientific name.
+
+```
+"Request": "Search for Egregia menziesii"
+"Response": {
+    "params": {
+        "scientificname": "Egregia menziesii"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request includes a scientific name hence populated the params with scientificname"
+}
+```
+
 
 ### checklist
 

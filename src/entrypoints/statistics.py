@@ -125,7 +125,7 @@ async def run(request: str, context: ResponseContext):
 
                 record_count = len(response_json)
 
-                # await process.log(response_json)
+                print("hrer")
 
                 await process.create_artifact(
                     mimetype="application/json",
@@ -138,6 +138,7 @@ async def run(request: str, context: ResponseContext):
                     }
                 )
 
+                await process.log("artifact created")
         except InstructorRetryException as e:
             print(e)
             await process.log("Sorry, I couldn't find any species statistics.")
