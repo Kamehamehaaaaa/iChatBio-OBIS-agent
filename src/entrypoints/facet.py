@@ -18,44 +18,35 @@ from ichatbio.types import AgentCard, AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
+description = """
+facet - Exploratory Categorical Counts
+
+Purpose:
+Return counts grouped by predefined categorical fields.
+
+Use when:
+User wants breakdown by:
+    dataset
+    institution
+    taxonomic rank
+    country
+    and so on
+User asks “Which X has the most records?”
+
+Examples:
+“Which datasets contain records of brachyura?”
+“How many records per institution for Egregia menziesii?”
+“Compare record counts across datasets.”
+
+Do NOT use for:
+Time trends
+Statistical summaries
+Raw record retrieval
+"""
+
 entrypoint= AgentEntrypoint(
     id="facet",
-    description="""
-        Get record counts for one or more facets from OBIS.
-
-        Use this endpoint for exploratory, categorical breakdowns of occurrence records,
-        primarily to understand data coverage, availability, or distribution across
-        discrete attributes.
-
-        This endpoint answers questions such as:
-        - “How many records exist for each dataset, institution, or taxonomic group?”
-        - “Which categories contain the most data?”
-        - “How is data distributed across predefined facet values?”
-
-        The Facet API is intended for exploration and filtering decisions, not for
-        analytical summaries or statistical reporting.
-
-        When to use:
-        - When exploring data coverage or availability.
-        - When comparing counts across categorical dimensions (dataset, institution, area, taxonomic rank).
-        - When deciding which subset of data to retrieve next.
-
-        When NOT to use:
-        - Do NOT use this endpoint for analytical summaries, trends, or reporting-style
-        statistics (e.g., time-series analysis or semantic aggregations).
-        - For year-wise trends, temporal summaries, or structured statistical outputs,
-        prefer the Statistics API.
-
-        Limitations:
-        - Returns only simple facet counts.
-        - Does not perform statistical aggregation or analytical summaries.
-        - Facets are limited to predefined categorical fields.
-        
-        Example usage:
-        - Compare record counts across datasets for a species.
-        - Identify which institutions contribute most records.
-        - Explore data availability by taxonomic rank.
-    """,
+    description=description,
     parameters=None
 )
 

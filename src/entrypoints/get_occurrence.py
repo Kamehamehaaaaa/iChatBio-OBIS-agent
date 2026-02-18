@@ -23,14 +23,26 @@ from utils import utils
 # from artifact_registry import ArtifactRegistry
 
 description = """
-Retrieve occurrence records of species from OBIS matching query criteria. Also retrives an individual occurrence record.
-When query asks for species records and not just summary or total number of records direct them here.
+get_occurrence - For Raw Occurrence Records
 
-Here are some examples:
-- Get n records of a species from a area or place or region.
-- Get records of a species from an institute or dataset.
-- Records found in a geographic location during a period.
-- Get occurrence record with id 0000039c-74cd-4e37-9bf8-848d560bf519
+Purpose:
+Retrieve individual occurrence records (raw observation rows).
+
+Use ONLY when:
+User wants actual occurrence entries.
+User requests specific record IDs.
+User wants detailed observation data.
+User wants limited number of records (e.g., “give me 10 records of…”)
+
+Examples:
+“Get 20 records of Egregia menziesii from California.”
+“Show records of brachyura from 2010–2020.”
+“Get occurrence record with id 0000039c-74cd-4e37-9bf8-848d560bf519”
+
+Do NOT use when:
+User wants aggregated counts.
+User wants year-wise trends.
+User wants categorical breakdowns.
 """
 
 entrypoint= AgentEntrypoint(

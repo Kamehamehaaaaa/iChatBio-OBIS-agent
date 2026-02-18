@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator, Field, constr, conint
 from typing import Optional, Annotated, Literal, Required, List
 from datetime import datetime
+from enum import Enum
 
 class AnalyzeRequestResponse(BaseModel):
     entrypoints: List[str] = Field(None, description="entrypoint that needs to be called to complete the user request. The entrypoint should be from the availbale list of entrypoints.")
@@ -141,9 +142,80 @@ class occurrenceLookupApi(BaseModel):
     id: Optional[str] = Field(None, description="occurrence record id",
                               examples=["00000002-3cef-4bc1-8540-2c20b4798855"])
 
+class FacetField(str, Enum):
+    basisOfRecord = "basisOfRecord"
+    class_ = "class"
+    classid = "classid"
+    collectionCode = "collectionCode"
+    coordinateUncertaintyInMeters = "coordinateUncertaintyInMeters"
+    dataGeneralizations = "dataGeneralizations"
+    datasetID = "datasetID"
+    datasetName = "datasetName"
+    date_end = "date_end"
+    date_mid = "date_mid"
+    date_start = "date_start"
+    date_year = "date_year"
+    decimalLatitude = "decimalLatitude"
+    decimalLongitude = "decimalLongitude"
+    eventDate = "eventDate"
+    eventID = "eventID"
+    eventType = "eventType"
+    family = "family"
+    familyid = "familyid"
+    genus = "genus"
+    genusid = "genusid"
+    geodeticDatum = "geodeticDatum"
+    infraphylum = "infraphylum"
+    infraphylumid = "infraphylumid"
+    institutionCode = "institutionCode"
+    kingdom = "kingdom"
+    kingdomid = "kingdomid"
+    license = "license"
+    locationRemarks = "locationRemarks"
+    marine = "marine"
+    maximumElevationInMeters = "maximumElevationInMeters"
+    megaclass = "megaclass"
+    megaclassid = "megaclassid"
+    minimumElevationInMeters = "minimumElevationInMeters"
+    occurrenceID = "occurrenceID"
+    occurrenceStatus = "occurrenceStatus"
+    order = "order"
+    orderid = "orderid"
+    organismID = "organismID"
+    organismName = "organismName"
+    parentEventID = "parentEventID"
+    phylum = "phylum"
+    phylumid = "phylumid"
+    rightsHolder = "rightsHolder"
+    samplingProtocol = "samplingProtocol"
+    scientificName = "scientificName"
+    scientificNameID = "scientificNameID"
+    sex = "sex"
+    species = "species"
+    speciesid = "speciesid"
+    subphylum = "subphylum"
+    subphylumid = "subphylumid"
+    superclass = "superclass"
+    superclassid = "superclassid"
+    type_ = "type"
+    id_ = "id"
+    dataset_id = "dataset_id"
+    node_id = "node_id"
+    dropped = "dropped"
+    absence = "absence"
+    originalScientificName = "originalScientificName"
+    aphiaID = "aphiaID"
+    flags = "flags"
+    bathymetry = "bathymetry"
+    shoredistance = "shoredistance"
+
 class facetsAPIParams(BaseModel):
-    facets: list = Field(None, description="Comma separated list of facets", examples= ["originalScientificName,flags", "node_id"])
-    composite: Optional[bool] = Field(None, description="Composite aggregation")
+    facets: List[FacetField] = Field(None, description="Comma separated list of facets. List of facet fields to aggregate on", examples= ["originalScientificName,flags", "node_id"])
+    composite: Optional[bool] = Field(None, description="""
+        If true, performs multi-level (nested) aggregation across multiple facet fields.
+        Returns counts grouped by combinations of facet values rather than independent counts per facet.
+        Requires two or more facets.
+    """)
     scientificname: Optional[str] = Field(None, description="Scientific name. Leave empty to include all taxa", examples=["brachyura", "Cancer borealis"])
     taxonid: Optional[str] = Field(None, description="Taxon AphiaID")
     areaid: Optional[str] = Field(None, description="Area ID")
@@ -187,6 +259,23 @@ class facetsAPIParams(BaseModel):
             raise ValueError("enddepth must be greater than or equal to startdepth")
         return value
     
+    @field_validator('facets', mode="before")
+    def normalize_facets(cls, value):
+        if value is None:
+            return []
+        
+        if isinstance(value, str):
+            value = [v.strip() for v in value.split(',')]
+        
+        return value
+    
+    @field_validator("composite")
+    def validate_composite_logic(cls, value, info):
+        if value:
+            facets = info.data.get("facets")
+            if not facets or len(facets) < 2:
+                raise ValueError("Composite aggregation requires at least two facets.")
+        return value
 
 class instituteApi(BaseModel):
     scientificname: Optional[str] = Field(
@@ -244,6 +333,7 @@ class instituteApi(BaseModel):
     #extra parameters which are not mentioned in api documentation. 
     area: Optional[str] = Field(None, description="Name of the Area, place or region specified in the user request.")
     institute: Optional[str] = Field(None, description="Name of the institute in the request.")
+    commonname: Optional[str] = Field(None, description="Common name passed in the user query")
 
     @field_validator('startdate', 'enddate')
     def validate_date_format(cls, value):

@@ -19,11 +19,31 @@ from ichatbio.types import AgentCard, AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
+description = """
+checklist - Species Inventory (Presence List)
+
+Purpose:
+Generate species list for a geographic area or habitat.
+
+Use when:
+User asks:
+    “What species occur in…”
+    “Species inventory of…”
+    “Checklist of species in…”
+
+Examples:
+“Checklist of species in the Gulf of Mexico.”
+“Species catalog for Great Barrier Reef.”
+
+Not for:
+Raw records
+Counts per dataset
+Trends
+"""
+
 entrypoint= AgentEntrypoint(
     id="checklist",
-    description="Generates a checklist for the species from OBIS. " \
-                "When queried for a catalog of species in a given area or habitat (e.g., a species inventory for a protected area), " \
-                "want to know which species might typically occur in an area, rather than tracking individual sightings.",
+    description=description,
     parameters=None
 )
 

@@ -16,7 +16,13 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="institute_lookup",
-    description="Retrieve information about a specific 'institute' from OBIS. Queries like get number of records at an institute are resolved here.",
+    description="""
+Purpose:
+Retrieve metadata about a specific institute.
+
+Use when:
+User asks for details about an institute itself.
+""",
     parameters=None
 )
 

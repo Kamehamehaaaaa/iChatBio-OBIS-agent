@@ -14,6 +14,29 @@ from ichatbio.types import AgentEntrypoint
 from utils import search_helper as search
 from utils import utils
 
+description = """
+dataset - Filtered Dataset List
+
+Purpose:
+Return a list of datasets that contain occurrence records matching specified filter conditions.
+This endpoint identifies which datasets contain relevant data, not the occurrence records themselves.
+
+Use This Endpoint When:
+The user wants to know which datasets contain records for a species or filter.
+The user is exploring data sources before retrieving records.
+
+Examples:
+“Which datasets contain records of brachyura?”
+“List datasets that have Egregia menziesii records in Australia.”
+“Datasets with records from 2010–2020 in the Pacific Ocean.”
+“Find datasets contributed by institute X containing kelp records.”
+
+What It Returns:
+List of datasets
+Dataset metadata (name, id, possibly record count depending on API behavior)
+Only datasets that satisfy the filter conditions
+"""
+
 entrypoint= AgentEntrypoint(
     id="dataset",
     description="Get records of species from a dataset from OBIS. Queries like 'get datasets which have records of brachyura' is resolved here.",

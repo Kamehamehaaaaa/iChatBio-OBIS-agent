@@ -50,6 +50,8 @@ async def analyze_request(state: AgentState) -> AgentState:
     
     Which endpoint should be called first?. Make a sound choice. Do not assume or make up your own calls. Chose from the given set of entrypoints. Return all the entrypoints that you think are required.
     """
+
+    print(prompt)
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=utils.getValue("OPEN_API_KEY"), base_url=utils.getValue("OPENAI_BASE_URL"))
     structured_llm = llm.with_structured_output(schema=AnalyzeRequestResponse)
     # chain = prompt | llm 

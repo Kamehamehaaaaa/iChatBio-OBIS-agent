@@ -15,14 +15,18 @@ from utils import search_helper as search
 from utils import utils
 
 description = """
-Get institute wise number of species records from OBIS. 
-It only returns the institutions that pass the query and the number of records that satisfy the conditions.
+institute - Institute-Level Aggregation
 
-Sample queries:
-1. Get all the institutes which have records of brachyura.
-2. Get number of records of Egregia menziesi from all institutes in Australia.
+Purpose:
+Return institutions matching filters along with total record counts per institution.
 
-A query that needs summarized information and not records from OBIS should be directed here.
+Use when:
+User explicitly wants institution-level summary.
+Output format is institute + count.
+
+Examples:
+“List institutes that have records of brachyura.”
+“Number of records of Egregia menziesii per institute in Australia.”
 """
 
 entrypoint= AgentEntrypoint(
@@ -59,6 +63,10 @@ async def run(request: str, context: ResponseContext):
         if "area" in params:
             if not await utils.resolveParams(params, "area", "areaid", process):
                 return
+            
+        if "commonname" in params:
+            if not await utils.resolveParams(params, "commonname", "taxonid", process):
+                return 
 
         # if "institute" in params:
         #     institutes = await utils.getInstituteId(params)

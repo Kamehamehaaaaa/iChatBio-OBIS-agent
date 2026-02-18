@@ -146,6 +146,10 @@ async def getAreaId(query):
 
     print(results)
 
+    results = await hybrid_match(query={"name": query}, query_options=results, best_n=len(results), weights=[0.2,0.8])
+
+    print(results)
+
     if len(results) > 0:
         ret = []
         for x in results:
@@ -173,7 +177,7 @@ async def getInstituteId(query):
 
     # match, score = process.extract(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.token_set_ratio)
 
-    matches = await hybrid_match(query=query_dict, institutes=institutes)
+    matches = await hybrid_match(query=query_dict, query_options=institutes, weights=[0.7,0.3])
     # print(matches)
     return matches
 
@@ -203,9 +207,11 @@ async def exceptionHandler(p, e, descr):
     return
 
 
-async def hybrid_match(query, institutes, best_n = 5):
+async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
+    if len(query_options) == 0:
+        return []
     model = SentenceTransformer('all-MiniLM-L6-v2')
-    names = [i["name"] for i in institutes]
+    names = [i["name"] for i in query_options]
     query_token_len = float(len(query["name"].split(" ")))
     
     # Embedding scores
@@ -222,13 +228,13 @@ async def hybrid_match(query, institutes, best_n = 5):
     fuzzy_scores = np.array(fuzzy_scores)
 
     # Weighted combination (50% semantic, 50% fuzzy)
-    hybrid_scores = 0.5 * emb_scores + 0.5 * fuzzy_scores
+    hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
 
     best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
     best_matches = [
         {
-            "id": institutes[i]["id"],
-            "name": institutes[i]["name"],
+            "id": query_options[i]["id"],
+            "name": query_options[i]["name"],
             "score": float(hybrid_scores[i])
         }
         for i in best_ind

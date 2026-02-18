@@ -23,8 +23,22 @@ from utils import utils
 # from artifact_registry import ArtifactRegistry
 
 description = """
-Get Taxonomic records for species based on their scientific name, common name or Taxon AphiaID.
-Can also be used to retireve scientific name annotations from WoRMs.
+taxon - Taxonomic Metadata
+
+Purpose:
+Retrieve taxonomic information and WoRMS annotations.
+
+Use when:
+User asks for:
+    Scientific name validation
+    AphiaID lookup
+    Common name lookup
+    Taxonomic classification
+
+Examples:
+“What is the AphiaID of Egregia menziesii?”
+“Taxonomic classification of brachyura.”
+“Scientific name for common name kelp.”
 """
 
 entrypoint= AgentEntrypoint(

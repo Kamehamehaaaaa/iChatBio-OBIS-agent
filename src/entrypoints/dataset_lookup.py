@@ -16,7 +16,15 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="dataset_lookup",
-    description="Retrieve information about a specific 'dataset' from OBIS. Requires the UUID of the dataset sepcifically.",
+    description="""
+dataset_lookup - Dataset Metadata
+
+Purpose:
+Retrieve metadata about a dataset using UUID.
+
+Use when:
+User asks about dataset description, publisher, citation, etc.
+""",
     parameters=None
 )
 

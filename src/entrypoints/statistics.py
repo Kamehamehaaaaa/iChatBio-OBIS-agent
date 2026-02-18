@@ -20,18 +20,25 @@ from utils import search_helper as search
 from utils import utils
 
 description = """
-        Use this endpoint for analytical summaries and statistical aggregations
-        of OBIS occurrence data.
+statistics - Analytical Aggregations
 
-        This endpoint should be preferred when:
-        - The user asks for trends over time (e.g., year-wise or decade-wise changes).
-        - The user wants structured statistical summaries rather than exploratory counts.
-        - The result is intended for reporting, analysis, or visualization.
+Purpose:
+Return structured statistical summaries (aggregated numerical data).
 
-        Examples:
-        - Year-wise number of occurrences for a species.
-        - Temporal trends in species presence.
-        - Taxonomic composition summaries across time.
+Use when:
+User asks for time trends.
+User asks for grouped numerical summaries.
+Output is intended for reporting or visualization.
+Aggregation by year, decade, taxonomic rank, etc.
+
+Examples:
+“Year-wise number of occurrences of Egregia menziesii.”
+“Trend of records over time.”
+“Taxonomic composition across decades.”
+
+Do NOT use for:
+Simple categorical counts.
+Exploratory dataset/institution breakdowns.
 """
 
 entrypoint= AgentEntrypoint(
