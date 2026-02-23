@@ -10,6 +10,7 @@ from rapidfuzz import fuzz, process
 from sentence_transformers import SentenceTransformer, util
 import torch
 import numpy as np
+from schema import FacetField
 
 def getValue(key):
     value = os.getenv(key)
@@ -27,9 +28,10 @@ def generate_obis_url(api, payload):
     # payload = payload["params"]
     if api == "facet":
         tmp = payload["facets"]
-        facets = tmp[0]
+        facets = FacetField[tmp[0]].value
+        # print(facets)
         for i in tmp[1:]:
-            facets = facets + "," + i
+            facets = facets + "," + FacetField[i].value
         payload["facets"] = facets
     if payload == None or len(payload) == 0:
         return obis_url+api
@@ -132,6 +134,31 @@ def destroy():
             print(f"{path} deleted successfully.")
 
 async def getAreaId(query):
+    reqQuery = {}
+    reqQuery['q'] = query
+    reqQuery['size'] = 10
+    reqQuery['skip'] = 0
+
+    url = generate_obis_url('area/search', reqQuery)
+    response = requests.get(url)
+
+    response_json = response.json()
+
+    results = response_json.get("results", [])
+
+    print(results)
+
+    results = await hybrid_match(query={"name": query}, query_options=results, best_n=len(results), weights=[0.2,0.8])
+
+    print(results)
+
+    if len(results) > 0:
+        ret = []
+        for x in results:
+            if x.get("id", '') != '':
+                ret.append({"name": x.get('name', ''), "areaid":x.get('id', '')})
+        return url, ret
+
     areas = getData("areaids.json", "areaid")
     
     query = query.lower()
@@ -140,7 +167,7 @@ async def getAreaId(query):
         if query in area["name"].lower() or query in area["areaid"].lower()
     ]
 
-    return matches
+    return None, matches
 
 async def getInstituteId(query):
     institutes = getData("institutes.json", "institute")
@@ -152,7 +179,7 @@ async def getInstituteId(query):
 
     # match, score = process.extract(query=query_dict, choices=institutes, processor=lambda d:d["name"], scorer=fuzz.token_set_ratio)
 
-    matches = await hybrid_match(query=query_dict, institutes=institutes)
+    matches = await hybrid_match(query=query_dict, query_options=institutes, weights=[0.7,0.3])
     # print(matches)
     return matches
 
@@ -182,9 +209,11 @@ async def exceptionHandler(p, e, descr):
     return
 
 
-async def hybrid_match(query, institutes, best_n = 5):
+async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
+    if len(query_options) == 0:
+        return []
     model = SentenceTransformer('all-MiniLM-L6-v2')
-    names = [i["name"] for i in institutes]
+    names = [i["name"] for i in query_options]
     query_token_len = float(len(query["name"].split(" ")))
     
     # Embedding scores
@@ -201,13 +230,13 @@ async def hybrid_match(query, institutes, best_n = 5):
     fuzzy_scores = np.array(fuzzy_scores)
 
     # Weighted combination (50% semantic, 50% fuzzy)
-    hybrid_scores = 0.5 * emb_scores + 0.5 * fuzzy_scores
+    hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
 
     best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
     best_matches = [
         {
-            "id": institutes[i]["id"],
-            "name": institutes[i]["name"],
+            "id": query_options[i]["id"],
+            "name": query_options[i]["name"],
             "score": float(hybrid_scores[i])
         }
         for i in best_ind
@@ -287,8 +316,15 @@ async def resolveCommonName(commonname: str) -> str | list:
 
     results = response_json.get("results", [])
 
+    # print(results, url)
+
     if len(results) > 0:
-        return url, [[x.get('commonName', ''), x.get('taxonID', ''), x.get('scientificName', '')] for x in results]
+        ret = []
+        for x in results:
+            if x.get('taxonID', '') != '':
+                ret.append([x.get('commonName', ''), x.get('taxonID', ''), x.get('scientificName', '')])
+            
+        return url, ret
 
     return url, None
 
@@ -310,7 +346,7 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                         content += "\n"
                         content += str(i[2]) + " with taxonID " + str(i[1])
                     content += "\n"
-                    content += f"Fetching records for {solution[0][2]}"
+                    content += f"Fetching records for {solution[0][1]}"
                     
                     await process.log(content)
                 params[resolveToParam] = solution[0][1]
@@ -371,20 +407,27 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                 return True
             
             case "area":
-                matches = await getAreaId(params.get("area"))
+                url, matches = await getAreaId(params.get("area"))
                 # print("area matches")
                 # print(matches)
                 if not matches or len(matches) == 0:
                     await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                     return False
                 if len(matches) > 1:
-                    await process.log("Multiple area matches found")
-                areas = ""+matches[0].get("areaid")
-                for match in matches[1:]:
-                    areas+=","
-                    areas+=match.get("areaid")
-                params[resolveToParam] = areas
-                del params["area"]
+                    if url == None:
+                        await process.log("Multiple area matches found")
+                        areas = ""+matches[0].get("areaid")
+                        for match in matches[1:]:
+                            areas+=","
+                            areas+=match.get("areaid")
+                        params[resolveToParam] = areas
+                        del params["area"]
+                    else:
+                        for match in matches:
+                            if match.get('areaid', '') != '':
+                                params[resolveToParam] = match.get('areaid', '')
+                                del params["area"]
+                                return True
                 return True
             
             case "scientificname":
@@ -400,4 +443,4 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                 raise ValueError()
             
     except ValueError as e:
-        await exceptionHandler(process, None, "OBIS agent encountered an error with parameter resolution")
+        await exceptionHandler(process, e, "OBIS agent encountered an error with parameter resolution")

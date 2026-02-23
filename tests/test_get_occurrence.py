@@ -26,7 +26,7 @@ async def test_run_occurrence_basic_success():
     }
 
     with patch("entrypoints.get_occurrence.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=[{"areaid": "123"}])), \
+         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,[{"areaid": "123"}]))), \
          patch("entrypoints.get_occurrence.requests.get", return_value=mock_response):
         
         await get_occurrence.run("Find occurrences of brachyura", mock_context)
@@ -162,7 +162,7 @@ async def test_run_occurrence_non_ok_response():
     mock_response.status_code = 500
 
     with patch("entrypoints.get_occurrence.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=[{"areaid": "999"}])), \
+         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,[{"areaid": "999"}]))), \
          patch("entrypoints.get_occurrence.requests.get", return_value=mock_response):
 
         await get_occurrence.run("Find occurrences of brachyura", mock_context)
@@ -194,7 +194,7 @@ async def test_multiple_area_matches():
     mock_response.json.return_value = {"total": 10, "results": [{"id": i} for i in range(3)]}
 
     with patch("entrypoints.get_occurrence.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=mock_areas)), \
+         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,mock_areas))), \
          patch("entrypoints.get_occurrence.requests.get", return_value=mock_response):
 
         await get_occurrence.run("Find brachyura in ocean", mock_context)
@@ -423,30 +423,34 @@ async def test_llm_clarification_needed():
 
 
 @pytest.mark.asyncio
-async def test_multiple_area_matches():
-    """Test when multiple areas are matched."""
-    mock_context = AsyncMock(spec=ResponseContext)
-    mock_process = AsyncMock(spec=IChatBioAgentProcess)
-    mock_context.begin_process.return_value.__aenter__.return_value = mock_process
+async def test_resolve_params_multiple_area_matches():
 
-    mock_llm_response = {
-        "params": {"species": "brachyura", "area": "Atlantic"},
-        "clarification_needed": False,
-    }
+    params = {"area": "Atlantic"}
+    mock_process = AsyncMock()
 
-    mock_areas = [{"areaid": "A1"}, {"areaid": "A2"}]
+    # Simulate multiple matches returned from OBIS
+    mock_matches = [
+        {"areaid": "A1"},
+        {"areaid": "A2"},
+        {"areaid": "A3"},
+    ]
 
-    mock_response = MagicMock()
-    mock_response.ok = True
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"total": 5, "results": [{"id": 1}]}
+    # Patch getAreaId only (NOT resolveParams)
+    with patch(
+        "entrypoints.get_occurrence.utils.getAreaId",
+        AsyncMock(return_value=(None, mock_matches)),
+    ):
+        from utils import utils
+        result = await utils.resolveParams(
+            params=params,
+            parameter="area",
+            resolveToParam="areaid",
+            process=mock_process,
+        )
 
-    with patch("entrypoints.get_occurrence.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=mock_areas)), \
-         patch("entrypoints.get_occurrence.requests.get", return_value=mock_response):
-        await get_occurrence.run("Find brachyura in Atlantic", mock_context)
+    assert result is True
+    assert "area" not in params
+    assert params["areaid"] == "A1,A2,A3"
 
-    mock_process.log.assert_any_call("Multiple area matches found")
-
-
+    mock_process.log.assert_awaited_once_with("Multiple area matches found")
 

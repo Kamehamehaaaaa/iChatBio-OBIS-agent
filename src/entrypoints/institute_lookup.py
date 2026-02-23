@@ -16,7 +16,13 @@ from utils import utils
 
 entrypoint= AgentEntrypoint(
     id="institute_lookup",
-    description="Retrieve information about a specific 'institute' from OBIS. Queries like get number of records at an institute are resolved here.",
+    description="""
+Purpose:
+Retrieve metadata about a specific institute.
+
+Use when:
+User asks for details about an institute itself.
+""",
     parameters=None
 )
 
@@ -36,50 +42,56 @@ async def run(request: str, context: ResponseContext):
                 raise Exception(llmResponse['reason'])
             params = llmResponse['params']
         except Exception as e:
-            print(e)
-            await process.log("Error generating params. " + e)
-
+            await utils.exceptionHandler(process, e, "Error generating params.")
             return
 
         await process.log("Initial Params generated", data=params)
 
-        institutes = []
-
         if "institute" in params:
-            institutes = await utils.getInstituteId(params)
-            if institutes == None or len(institutes) == 0:
-                await process.log("OBIS doesn't have any institutes named " + params["institute"])
+            if not await utils.resolveParams(params, "institute", "instituteid", process):
                 return
-
-            if institutes[0].get("score") < 0.80:
-                institute = ""+institutes[0].get("name", "")
-                if len(institutes) > 1:
-                    for i in institutes:
-                        institute += ", " + i.get("name", "")
-                    ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
-                                            "They are " + institute + ". Information about " + institutes[0].get("name", "") + \
-                                            " will be fetched"
-                    await process.log(ret_log)
-            params["id"] = institutes[0].get("id", "")
-            del params["institute"]
-            if "area" in params:
-                del params["area"]
 
         if "area" in params:
-            matches = await utils.getAreaId(params.get("area"))
-            # print("area matches")
-            # print(matches)
-            if not matches or len(matches) == 0:
-                await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+            if not await utils.resolveParams(params, "area", "areaid", process):
                 return
-            if len(matches) > 1:
-                await process.log("Multiple area matches found")
-            areas = ""+matches[0].get("areaid")
-            for match in matches[1:]:
-                areas+=","
-                areas+=match.get("areaid")
-            params["areaid"] = areas
-            del params["area"]
+
+        # institutes = []
+
+        # if "institute" in params:
+        #     institutes = await utils.getInstituteId(params)
+        #     if institutes == None or len(institutes) == 0:
+        #         await process.log("OBIS doesn't have any institutes named " + params["institute"])
+        #         return
+
+        #     if institutes[0].get("score") < 0.80:
+        #         institute = ""+institutes[0].get("name", "")
+        #         if len(institutes) > 1:
+        #             for i in institutes[1:]:
+        #                 institute += ", " + i.get("name", "")
+        #             ret_log = "OBIS has " + str(len(institutes)) + " closest matching institute names with the input. " + \
+        #                                     "They are " + institute + ". Information about " + institutes[0].get("name", "") + \
+        #                                     " will be fetched"
+        #             await process.log(ret_log)
+        #     params["id"] = institutes[0].get("id", "")
+        #     del params["institute"]
+        #     if "area" in params:
+        #         del params["area"]
+
+        # if "area" in params:
+        #     matches = await utils.getAreaId(params.get("area"))
+        #     # print("area matches")
+        #     # print(matches)
+        #     if not matches or len(matches) == 0:
+        #         await utils.exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+        #         return
+        #     if len(matches) > 1:
+        #         await process.log("Multiple area matches found")
+        #     areas = ""+matches[0].get("areaid")
+        #     for match in matches[1:]:
+        #         areas+=","
+        #         areas+=match.get("areaid")
+        #     params["areaid"] = areas
+        #     del params["area"]
 
         await process.log("Params generated", data=params)
 
