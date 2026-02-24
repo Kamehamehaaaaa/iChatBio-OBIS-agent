@@ -76,7 +76,7 @@ async def _generate_search_parameters(request: str, entrypoint: AgentEntrypoint,
 
     # if len(generation['unresolved_params']) > 0:
     #     await handleUnresolvedParams(entrypoint, generation)
-    print("returning from search params")
+    # print("returning from search params")
     return generation    
 
 # async def get_country_from_request(request):

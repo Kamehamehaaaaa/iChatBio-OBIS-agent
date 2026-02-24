@@ -176,6 +176,20 @@
 }
 ```
 
+## Example 5 - When the request specifies depth.
+
+```
+"Request": "occurrences records for species below 100 meters sea level"
+"Response": {
+    "params": {
+        "startdepth": "100",
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request's for species below 100 meters hence populated startdepth with it."
+}
+```
+
 ### facet
 
 ## Example 1 - When the request has a scientific name.
@@ -190,6 +204,147 @@
     "unresolved_params": null,
     "clarification_needed": False,
     "reason" : "The user request includes a scientific name hence populated the params with scientificname"
+}
+```
+
+## Example 2 — Single Facet (Scientific Name Present)
+
+```
+"Request": "How many records are there per dataset for Egregia menziesii?"
+"Response": {
+    "params": {
+        "facets": ["datasetID"],
+        "scientificname": "Egregia menziesii"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests categorical count grouped by dataset for a specific species, so datasetID facet is used."
+}
+```
+
+## Example 3 — Geographic Filter + Facet
+
+```
+"Request": "How many records are there per institution in Australia for brachyura?"
+"Response": {
+    "params": {
+        "facets": ["institutionCode"],
+        "scientificname": "brachyura",
+        "area": "Australia"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User wants categorical breakdown by institution with geographic constraint, so institutionCode facet is used."
+}
+```
+
+## Example 4 — Multiple Facets (Composite Required)
+
+```
+"Request": "Show record counts grouped by dataset and institution for kelp records."
+"Response": {
+    "params": {
+        "facets": ["datasetID", "institutionCode"],
+        "composite": True,
+        "commonname": "kelp"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests multi-level grouped breakdown by dataset and institution, so composite aggregation is required."
+}
+```
+
+## Example 5 — Time-Based Categorical Breakdown
+
+```
+"Request": "How many records per year for Egregia menziesii?"
+"Response": {
+    "params": {
+        "facets": ["date_year"],
+        "scientificname": "Egregia menziesii"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests categorical counts grouped by year, so date_year facet is used."
+}
+```
+
+## Example 6 — Area Only, No Taxon
+```
+"Request": "How many records exist per family in the Indian Ocean?"
+"Response": {
+    "params": {
+        "facets": ["family"],
+        "area": "Indian Ocean"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests categorical breakdown by taxonomic family within a geographic region."
+}
+```
+
+## Example 7 — Depth Filter + Facet
+
+```
+"Request": "How many records per genus between 0 and 200 meters depth?"
+"Response": {
+    "params": {
+        "facets": ["genus"],
+        "startdepth": 0,
+        "enddepth": 200
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests categorical breakdown by genus constrained by depth range."
+}
+```
+
+## Example 8 — Dataset Filter + Facet
+
+
+```
+"Request": "How many records per species in dataset aac5ca81-638a-4335-9aa7-5c2bda67a362?"
+"Response": {
+    "params": {
+        "facets": ["species"],
+        "datasetid": "aac5ca81-638a-4335-9aa7-5c2bda67a362"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User specifies dataset UUID and wants categorical breakdown by species."
+}
+```
+
+## Example 9 — Multi-Dimensional Time + Taxon (Composite)
+
+
+```
+"Request": "Show counts by year and family for brachyura in the Pacific."
+"Response": {
+    "params": {
+        "facets": ["date_year", "family"],
+        "composite": True,
+        "scientificname": "brachyura",
+        "area": "Pacific"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests grouped breakdown across two categorical fields, so composite aggregation is required."
+}
+```
+
+## Example 10 — Flags Filtering
+
+```
+"Request": "How many records per dataset excluding records flagged as ON_LAND?"
+"Response": {
+    "params": {
+        "facets": ["datasetID"],
+        "exclude": "ON_LAND"
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason": "User requests dataset-level categorical counts while excluding specific quality flag."
 }
 ```
 
@@ -255,6 +410,19 @@
 }
 ```
 
+## Example 5 - When the request specifies depth.
+
+```
+"Request": "datasets which have records for species below 100 meters sea level"
+"Response": {
+    "params": {
+        "startdepth": "100",
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request's for species below 100 meters hence populated startdepth with it."
+}
+```
 
 ### institute
 
@@ -314,6 +482,20 @@
     "unresolved_params": null,
     "clarification_needed": False,
     "reason": "the user specifies the scientific name and date ranges."
+}
+```
+
+## Example 5 - When the request specifies depth.
+
+```
+"Request": "institutes which have records for species below 100 meters sea level"
+"Response": {
+    "params": {
+        "startdepth": "100",
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request's for species below 100 meters hence populated startdepth with it."
 }
 ```
 
@@ -423,36 +605,19 @@
 }
 ```
 
-## Example 2 - When the request asks to get child taxonomies.
+## Example 2 - When the request has a scientific name.
 
 ```
-"Request": "Get child taxonomy of Atlantic cod."
+"Request": "Search for Egregia menziesii"
 "Response": {
     "params": {
-        "commonname": "Atlantic cod",
-        "childtaxonomy": True,
+        "scientificname": "Egregia menziesii"
     },
     "unresolved_params": null,
     "clarification_needed": False,
-    "reason" : "The user request specifies a common name hence populated it and asks for child taxonomy too."
+    "reason" : "The user request includes a scientific name hence populated the params with scientificname"
 }
 ```
-
-## Example 3 - When the request asks to get child taxonomies.
-
-```
-"Request": "get child taxa of taxon Otariidae."
-"Response": {
-    "params": {
-        "scientificname": "Otariidae",
-        "childtaxonomy": True,
-    },
-    "unresolved_params": null,
-    "clarification_needed": False,
-    "reason" : "The user request specifies a scientific name specifically a family (Otariidae) hence populated it and asks for child taxonomy too."
-}
-```
-get child taxa of taxon Otariidae
 
 
 ### checklist
@@ -586,5 +751,19 @@ get child taxa of taxon Otariidae
     "unresolved_params": null,
     "clarification_needed": False,
     "reason" : "The user request includes a common name but from my knowledge I populated scienticName as Delphinidae and institute and area from query with confidence."
+}
+```
+
+## Example 10 - When the request specifies depth.
+
+```
+"Request": "Search for species below 100 meters"
+"Response": {
+    "params": {
+        "startdepth": "100",
+    },
+    "unresolved_params": null,
+    "clarification_needed": False,
+    "reason" : "The user request's for species below 100 meters hence populated startdepth with it."
 }
 ```
