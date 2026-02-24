@@ -56,15 +56,15 @@ async def test_taxon_common_name_multiple_matches():
     }
 
     mock_scientific_names = [
-        ("Atlantic salmon", "Salmo salar"),
-        ("Chinook salmon", "Oncorhynchus tshawytscha"),
+        ("Atlantic salmon", 1, "Salmo salar"),
+        ("Chinook salmon", 2, "Oncorhynchus tshawytscha"),
     ]
 
     mock_response = MagicMock(ok=True, status_code=200)
     mock_response.json.return_value = {"total": 2, "results": [{"id": 1}, {"id": 2}]}
 
     with patch("entrypoints.taxon.search._generate_search_parameters", AsyncMock(return_value=llm_response)), \
-         patch("entrypoints.taxon.utils.getScientificName", AsyncMock(return_value=("fake_url", mock_scientific_names))), \
+         patch("entrypoints.taxon.utils.resolveCommonName", AsyncMock(return_value=("fake_url", mock_scientific_names))), \
          patch("entrypoints.taxon.requests.get", return_value=mock_response):
 
         await taxon.run("Get taxon info for salmon", mock_context)

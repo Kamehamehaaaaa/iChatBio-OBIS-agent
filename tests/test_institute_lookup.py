@@ -110,7 +110,7 @@ async def test_run_institute_low_score_multiple_matches():
 
         mock_process.log.assert_any_call(
             "OBIS has 2 closest matching institute names with the input. "
-            "They are Institute A, Institute B. Information about Institute A will be fetched"
+            "They are Institute A, Institute B. Records for Institute A will be fetched"
         )
         mock_process.create_artifact.assert_awaited_once()
 

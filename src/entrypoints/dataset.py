@@ -53,13 +53,33 @@ async def run(request: str, context: ResponseContext):
 
         await process.log("Generating search parameters for dataset records")
         
+        # try:
+        #     llmResponse = await search._generate_search_parameters(request, entrypoint, datasetApi)
+        #     if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
+        #         raise Exception(llmResponse['reason'])
+        #     params = llmResponse['params']
+        # except Exception as e:
+        #     await utils.exceptionHandler(process, e, "Error generating params. ")
+        #     return
+
         try:
             llmResponse = await search._generate_search_parameters(request, entrypoint, datasetApi)
-            if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
-                raise Exception(llmResponse['reason'])
+            
+            if not llmResponse or "params" not in llmResponse:
+                exception = "parameters could not be generated from request."
+                if 'reason' in llmResponse:
+                    exception += llmResponse['reason']
+                raise Exception(exception)
             params = llmResponse['params']
+            if 'clarification_needed' in llmResponse.keys() and llmResponse['clarification_needed']:
+                exception = 1
+                if unresolved := llmResponse.get('unresolved_params', ''):
+                    if 'institute' in params and 'instituteid' in unresolved:
+                        exception = 0
+                if exception:
+                    raise Exception(llmResponse['reason'])
         except Exception as e:
-            await utils.exceptionHandler(process, e, "Error generating params. ")
+            await utils.exceptionHandler(process, e, "Error generating obis parameters.")
             return
 
         await process.log("Initial params generated", data=params)

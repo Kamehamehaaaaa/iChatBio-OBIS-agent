@@ -131,7 +131,7 @@ async def test_institute_low_score_multiple():
 
     mock_process.log.assert_any_call(
         "OBIS has 2 closest matching institute names with the input. "
-        "They are Institute A, Institute A, Institute B. "
+        "They are Institute A, Institute B. "
         "Records for Institute A will be fetched"
     )
     mock_process.create_artifact.assert_awaited_once()
@@ -171,7 +171,7 @@ async def test_institute_multiple_area_matches():
         "clarification_needed": False
     }
 
-    mock_areas = [{"areaid": "A1"}, {"areaid": "A2"}]
+    mock_areas = None,[{"areaid": "A1"}, {"areaid": "A2"}]
 
     mock_response = MagicMock()
     mock_response.ok = True
