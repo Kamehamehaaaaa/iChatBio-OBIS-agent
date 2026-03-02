@@ -12,7 +12,7 @@ from schema import FacetField
 from openai import AsyncOpenAI
 import instructor
 
-from sentence_transformers import SentenceTransformer, util
+# from sentence_transformers import SentenceTransformer, util
 import torch
 
 def getValue(key):
@@ -281,14 +281,17 @@ async def exceptionHandler(p, e, descr):
 async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
     if len(query_options) == 0:
         return []
-    model = SentenceTransformer('all-MiniLM-L6-v2')
     names = [i["name"] for i in query_options]
     query_token_len = float(len(query["name"].split(" ")))
     
-    # Embedding scores
-    q_emb = model.encode(query["name"], convert_to_tensor=True)
-    inst_embs = model.encode(names, convert_to_tensor=True)
-    emb_scores = util.cos_sim(q_emb, inst_embs)[0].cpu().numpy()
+    # model = SentenceTransformer('all-MiniLM-L6-v2')
+    
+    # # Embedding scores
+    # q_emb = model.encode(query["name"], convert_to_tensor=True)
+    # inst_embs = model.encode(names, convert_to_tensor=True)
+    # emb_scores = util.cos_sim(q_emb, inst_embs)[0].cpu().numpy()
+
+    emb_scores = 0
 
     # Fuzzy scores
     fuzzy_scores = []
@@ -299,7 +302,8 @@ async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
     fuzzy_scores = np.array(fuzzy_scores)
 
     # Weighted combination (x% semantic, y% fuzzy)
-    hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
+    # hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
+    hybrid_scores = fuzzy_scores
 
     best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
     best_matches = [
