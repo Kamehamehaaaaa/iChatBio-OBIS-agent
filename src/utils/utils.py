@@ -1,4 +1,3 @@
-import importlib
 import os
 import yaml
 from urllib.parse import urlencode, quote
@@ -7,10 +6,14 @@ import requests
 
 # from fuzzywuzzy import fuzz, process
 from rapidfuzz import fuzz, process
-from sentence_transformers import SentenceTransformer, util
-import torch
 import numpy as np
 from schema import FacetField
+
+from openai import AsyncOpenAI
+import instructor
+
+from sentence_transformers import SentenceTransformer, util
+import torch
 
 def getValue(key):
     value = os.getenv(key)
@@ -207,6 +210,61 @@ async def exceptionHandler(p, e, descr):
     else:
         await p.log(descr)
     return
+
+# async def get_embeddings(texts):
+#     client = AsyncOpenAI(api_key=getValue("OPEN_API_KEY"), base_url=getValue("OPENAI_BASE_URL"))
+#     instructor_client = instructor.patch(client)
+
+#     response = await instructor_client.embeddings.create(
+#         model="text-embedding-3-small",
+#         # model="nomic-embed-text-v1.5",
+#         input=texts
+#     )
+#     return [np.array(d.embedding) for d in response.data]
+
+
+# def cosine_similarity(a, b):
+#     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+
+# async def hybrid_match(query, query_options, best_n=5, weights=[0.6, 0.4]):
+#     if not query_options:
+#         return []
+
+#     names = [i["name"] for i in query_options]
+#     query_name = query["name"]
+
+#     embeddings = await get_embeddings([query_name] + names)
+#     q_emb = embeddings[0]
+#     inst_embs = embeddings[1:]
+
+#     emb_scores = np.array([
+#         cosine_similarity(q_emb, inst_emb)
+#         for inst_emb in inst_embs
+#     ])
+
+#     fuzzy_scores = np.array([
+#         fuzz.token_set_ratio(query_name, name) / 100
+#         for name in names
+#     ])
+
+#     hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
+
+#     best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
+
+#     best_matches = [
+#         {
+#             "id": query_options[i]["id"],
+#             "name": query_options[i]["name"],
+#             "score": float(hybrid_scores[i])
+#         }
+#         for i in best_ind
+#     ]
+
+#     if not best_matches or best_matches[0]["score"] < 0.55:
+#         return []
+
+#     return best_matches
 
 
 async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
@@ -409,7 +467,7 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
             case "area":
                 url, matches = await getAreaId(params.get("area"))
                 # print("area matches")
-                # print(matches)
+                # print(url,matches)
                 if not matches or len(matches) == 0:
                     await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                     return False
@@ -427,7 +485,17 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                             if match.get('areaid', '') != '':
                                 params[resolveToParam] = match.get('areaid', '')
                                 del params["area"]
-                                return True
+                                return True   
+                else:
+                    if matches[0].get('areaid', '') != '':
+                        params[resolveToParam] = matches[0].get('areaid')
+                        del params["area"]
+                        return True
+                    else:
+                        await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
+                        return False
+                    
+
                 return True
             
             case "scientificname":
