@@ -1,16 +1,29 @@
-FROM rb-obis-base:2.0
+FROM ubuntu:24.04
 
-# Permissions and nonroot user for tightened security
-RUN mkdir -p /var/log/flask-app && touch /var/log/flask-app/flask-app.err.log && touch /var/log/flask-app/flask-app.out.log
-RUN chown -R nonroot:nonroot /var/log/flask-app
+RUN apt-get update -y \
+      && apt-get install -y \
+      python3-pip \
+      python3.12-venv \
+      pipx
+
+ENV PATH="/root/.local/bin:$PATH"
+RUN pipx install uv
+RUN cp /root/.local/bin/uv /usr/local/bin/uv
+
+RUN adduser --disabled-password nonroot
+RUN mkdir /home/app && chown -R nonroot:nonroot /home/app
+
 WORKDIR /home/app
-USER nonroot
-
-# Copy all the files to the container
 COPY --chown=nonroot:nonroot . .
 
-# Define the port number the container should expose
+USER nonroot
+
+ENV VIRTUAL_ENV=/home/app/venv
+ENV PATH="$VIRTUAL_ENV/bin:/usr/local/bin:$PATH"
+
+RUN python3 -m venv $VIRTUAL_ENV
+RUN uv pip install --no-cache --python $VIRTUAL_ENV/bin/python -e .
+
 EXPOSE 8990
 
-# WORKDIR /home/app/backend
-CMD ["python3", "src/__main__.py"]
+CMD ["uvicorn", "src.:create_app", "--factory", "--host", "0.0.0.0", "--port", "8990"]

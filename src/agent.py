@@ -11,6 +11,8 @@ from ichatbio.agent_response import ResponseContext, IChatBioAgentProcess
 
 from utils import utils
 import requests
+from ichatbio.server import build_agent_app
+from starlette.applications import Starlette
 
 class OBISAgent(IChatBioAgent):
 
@@ -61,3 +63,9 @@ class OBISAgent(IChatBioAgent):
             case _:
                 raise ValueError()
         await context.reply("OBIS query completed")
+
+    
+def create_app() -> Starlette:
+    agent = OBISAgent()
+    app = build_agent_app(agent)
+    return app
