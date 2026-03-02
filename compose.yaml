@@ -1,0 +1,7 @@
+services:
+  agent:
+    build:
+      context: .
+    ports:
+      - "29198:8990"
+    restart: unless-stopped

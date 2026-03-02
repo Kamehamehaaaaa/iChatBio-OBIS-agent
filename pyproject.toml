@@ -1,0 +1,69 @@
+[project]
+name = "OBIS-agent"
+version = "0.1.0"
+description = "Ocean Biodiversity Systems query resolver"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Rohit Bogulla" }
+]
+
+dependencies = [
+    # Core agent SDK
+    "ichatbio-sdk>=0.2.5",
+
+    # API server
+    "fastapi>=0.135.0",
+    "uvicorn[standard]>=0.41.0",
+
+    # OpenAI + structured output
+    "openai>=2.24.0",
+    "instructor>=1.14.5",
+
+    # Embeddings / ML
+    "sentence-transformers>=5.2.0",
+    "transformers>=5.2.0",
+    "torch>=2.10.0",
+
+    # Scientific stack
+    "numpy>=2.4.0",
+    "scikit-learn>=1.8.0",
+    "scipy>=1.17.0",
+
+    # HTTP / utilities
+    "httpx>=0.28.0",
+    "requests>=2.32.0",
+    "PyYAML>=6.0",
+    "rich>=14.0.0",
+    "typer>=0.24.0",
+
+    # Config
+    "python-dotenv>=1.0.1",
+
+    # Validation
+    "pydantic>=2.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "tests"]
+asyncio_mode = "auto"
+log_cli = true
+log_cli_level = "INFO"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+]
+
+[build-system]
+requires = ["setuptools>=80.0.0", "wheel"]
+build-backend = "setuptools.build_meta"

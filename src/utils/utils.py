@@ -74,7 +74,7 @@ def initializeAreaIds():
         results = response.json()['results']
         for i in results:
             areas.append({
-                "areaid": i.get("id"),
+                "id": i.get("id"),
                 "name": i.get("name"),
                 "type": i.get("type")
             })
@@ -143,33 +143,40 @@ async def getAreaId(query):
     reqQuery['skip'] = 0
 
     url = generate_obis_url('area/search', reqQuery)
-    response = requests.get(url)
+    results = []
+    try:
+        response = requests.get(url)
 
-    response_json = response.json()
+        response_json = response.json()
 
-    results = response_json.get("results", [])
+        results = response_json.get("results", [])
 
-    print(results)
+        # print(results)
 
-    results = await hybrid_match(query={"name": query}, query_options=results, best_n=len(results), weights=[0.2,0.8])
+        results = await hybrid_match(query={"name": query}, query_options=results, best_n=len(results), weights=[0.2,0.8])
 
-    print(results)
+        # print(results)
+    except Exception as e:
+        print(e)
 
     if len(results) > 0:
-        ret = []
-        for x in results:
-            if x.get("id", '') != '':
-                ret.append({"name": x.get('name', ''), "areaid":x.get('id', '')})
-        return url, ret
+            ret = []
+            for x in results:
+                if x.get("id", '') != '':
+                    ret.append({"name": x.get('name', ''), "id":x.get('id', '')})
+            return url, ret
 
     areas = getData("areaids.json", "areaid")
     
     query = query.lower()
     matches = [
         area for area in areas
-        if query in area["name"].lower() or query in area["areaid"].lower()
+        if query in area["name"].lower() or query in area["id"].lower()
     ]
 
+    # matches = await hybrid_match(query={"name": query}, query_options=areas, best_n=5, weights=[0.3, 0.7])
+
+    # print(matches)
     return None, matches
 
 async def getInstituteId(query):
@@ -267,6 +274,10 @@ async def exceptionHandler(p, e, descr):
 #     return best_matches
 
 
+# query = dict('name':)
+# query_options = dict('name':,'id':,)
+# best_n = best matches 
+# weights = [weightage for embedding score, weightage for fuzzy score]
 async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
     if len(query_options) == 0:
         return []
@@ -287,7 +298,7 @@ async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
     
     fuzzy_scores = np.array(fuzzy_scores)
 
-    # Weighted combination (50% semantic, 50% fuzzy)
+    # Weighted combination (x% semantic, y% fuzzy)
     hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
 
     best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
@@ -299,6 +310,7 @@ async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
         }
         for i in best_ind
     ]
+
     if best_matches[0].get("score", 0) < 0.5:
         return []
     return best_matches
@@ -466,29 +478,32 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
             
             case "area":
                 url, matches = await getAreaId(params.get("area"))
-                # print("area matches")
-                # print(url,matches)
                 if not matches or len(matches) == 0:
                     await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                     return False
                 if len(matches) > 1:
                     if url == None:
                         await process.log("Multiple area matches found")
-                        areas = ""+matches[0].get("areaid")
+                        areas = ""+matches[0].get("id",'')
                         for match in matches[1:]:
                             areas+=","
-                            areas+=match.get("areaid")
+                            areas+=match.get("id")
+                        if len(areas) == 0:
+                            await exceptionHandler(process, None, "The area specified doesn't match any OBIS supported list of areas")
+                            return False
                         params[resolveToParam] = areas
                         del params["area"]
                     else:
                         for match in matches:
-                            if match.get('areaid', '') != '':
-                                params[resolveToParam] = match.get('areaid', '')
+                            if match.get('id', '') != '':
+                                params[resolveToParam] = match.get('id')
                                 del params["area"]
                                 return True   
+                        await exceptionHandler(process, None, "The area specified doesn't match any OBIS supported list of areas")
+                        return False
                 else:
-                    if matches[0].get('areaid', '') != '':
-                        params[resolveToParam] = matches[0].get('areaid')
+                    if matches[0].get('id', '') != '':
+                        params[resolveToParam] = matches[0].get('id')
                         del params["area"]
                         return True
                     else:
