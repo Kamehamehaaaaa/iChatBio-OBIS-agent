@@ -6,7 +6,7 @@ import requests
 
 # from fuzzywuzzy import fuzz, process
 from rapidfuzz import fuzz, process
-import numpy as np
+# import numpy as np
 from schema import FacetField
 
 from openai import AsyncOpenAI
@@ -299,13 +299,14 @@ async def hybrid_match(query, query_options, best_n = 5, weights = [0.5, 0.5]):
         tp = ( await fn(query["name"], n)) / query_token_len
         fuzzy_scores.append(tp)
     
-    fuzzy_scores = np.array(fuzzy_scores)
+    fuzzy_scores = list(fuzzy_scores)
 
     # Weighted combination (x% semantic, y% fuzzy)
     # hybrid_scores = weights[0] * emb_scores + weights[1] * fuzzy_scores
     hybrid_scores = fuzzy_scores
 
-    best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
+    # best_ind = np.argsort(hybrid_scores)[::-1][:best_n]
+    best_ind = [index for index, _ in sorted(enumerate(hybrid_scores), key=lambda x: x[1], reverse=True)[:best_n]]
     best_matches = [
         {
             "id": query_options[i]["id"],
