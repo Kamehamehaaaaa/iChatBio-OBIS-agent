@@ -13,7 +13,7 @@ from openai import AsyncOpenAI
 import instructor
 
 # from sentence_transformers import SentenceTransformer, util
-import torch
+# import torch
 
 def getValue(key):
     value = os.getenv(key)
