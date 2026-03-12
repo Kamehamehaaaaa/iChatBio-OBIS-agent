@@ -80,7 +80,7 @@ def initializeAreaIds():
             })
     
     if len(areas) > 0:
-        with open("areaids.json", "w", encoding="utf-8") as f:
+        with open("areas.json", "w", encoding="utf-8") as f:
             json.dump(areas, f, indent=2, ensure_ascii=False)
     else:
         print("No areaids")
@@ -109,6 +109,27 @@ def initializeInstitutes():
         print("No institutes")
         
     return
+    
+def initializeDatasets():
+    datasets = []
+
+    url = generate_obis_url('dataset', None)
+    response = requests.get(url)
+
+    if response.ok:
+        results = response.json()['results']
+        for i in results:
+            if i["id"] == None:
+                continue
+            datasets.append(i)
+    
+    if len(datasets) > 0:
+        with open("datasets.json", "w", encoding="utf-8") as f:
+            json.dump(datasets, f, indent=2, ensure_ascii=False)
+    else:
+        print("No datasets")
+        
+    return
 
 def getData(path, queryType):
     if os.path.exists(path) == False:
@@ -117,6 +138,8 @@ def getData(path, queryType):
                 initializeAreaIds()
             case "institute":
                 initializeInstitutes()
+            case "dataset":
+                initializeDatasets()
             case _:
                 pass
 
@@ -130,7 +153,7 @@ def setup():
 
 
 def destroy():
-    paths = ["areaids.json", "institutes.json"]
+    paths = ["areas.json", "institutes.json", "datasets.json"]
     for path in paths:
         if os.path.exists(path):
             os.remove(path)
@@ -166,7 +189,7 @@ async def getAreaId(query):
                     ret.append({"name": x.get('name', ''), "id":x.get('id', '')})
             return url, ret
 
-    areas = getData("areaids.json", "areaid")
+    areas = getData("areas.json", "areaid")
     
     query = query.lower()
     matches = [

@@ -1,0 +1,44 @@
+[
+  {
+    "query": "Show me Gadus morhua occurrences after 2010",
+    "expected": {
+      "endpoint": "get_occurrence",
+      "params": {
+            "scientificname": "Gadus morhua",
+            "startdate": "01-01-2010"
+        },
+        "url": "https://api.obis.org/occurrence?scientificname=Gadus+morhua&startdate=2010-01-01"
+    }
+  },
+  {
+    "query": "how many records of Gadus morhua in australia",
+    "expected": {
+      "endpoint": "statistics",
+      "params": {
+            "scientificname": "Gadus morhua",
+            "area": "australia"
+        },
+        "url": "https://api.obis.org/statistics/years?scientificname=Gadus+morhua&areaid=8"
+    }
+  },
+  {
+    "query": "show records from Azores",
+    "expected": {
+      "endpoint": "get_occurrence",
+      "params": {
+            "areaid": "195"
+        },
+        "url": "https://api.obis.org/occurrence?areaid=195"
+    }
+  },
+  {
+    "query": "What is the AphiaID of Egregia menziesii?",
+    "expected": {
+      "endpoint": "taxon",
+      "params": {
+            "scientificname": "Egregia menziesii"
+        },
+        "url": "https://api.obis.org/taxon/Egregia%20menziesii"
+    }
+  }
+]

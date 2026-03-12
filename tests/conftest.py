@@ -44,13 +44,13 @@ class InMemoryResponseChannel(ResponseChannel):
 TEST_CONTEXT_ID = "617727d1-4ce8-4902-884c-db786854b51c"
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def messages() -> list[ResponseMessage]:
     """During unit tests, the agent's replies to iChatBio will be stored in this list"""
     return list()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def context(messages) -> ResponseContext:
     """
     A special test context which gathers agent response messages as they are generated. Messages that do not occur
