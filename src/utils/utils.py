@@ -12,6 +12,11 @@ from schema import FacetField
 from openai import AsyncOpenAI
 import instructor
 
+from utils import embedding
+from utils import ngrams
+
+from utils import dataLoader
+
 # from sentence_transformers import SentenceTransformer, util
 # import torch
 
@@ -64,91 +69,95 @@ def generate_mapper_obis_url(api, payload):
     url = obis_url+api+'?'+params
     return url
 
-def initializeAreaIds():
-    areas = []
+# def initializeAreaIds():
+#     areas = []
 
-    url = generate_obis_url('area', None)
-    response = requests.get(url)
+#     url = generate_obis_url('area', None)
+#     response = requests.get(url)
 
-    if response.ok:
-        results = response.json()['results']
-        for i in results:
-            areas.append({
-                "id": i.get("id"),
-                "name": i.get("name"),
-                "type": i.get("type")
-            })
+#     if response.ok:
+#         results = response.json()['results']
+#         for i in results:
+#             areas.append({
+#                 "id": i.get("id"),
+#                 "name": i.get("name"),
+#                 "type": i.get("type")
+#             })
     
-    if len(areas) > 0:
-        with open("areas.json", "w", encoding="utf-8") as f:
-            json.dump(areas, f, indent=2, ensure_ascii=False)
-    else:
-        print("No areaids")
+#     if len(areas) > 0:
+#         with open("areas.json", "w", encoding="utf-8") as f:
+#             json.dump(areas, f, indent=2, ensure_ascii=False)
+#     else:
+#         print("No areaids")
         
-    return
+#     return
 
-def initializeInstitutes():
-    institutes = []
+# def initializeInstitutes():
+#     institutes = []
 
-    url = generate_obis_url('institute', None)
-    response = requests.get(url)
+#     url = generate_obis_url('institute', None)
+#     response = requests.get(url)
 
-    if response.ok:
-        results = response.json()['results']
-        for i in results:
-            if i["id"] == None:
-                continue
-            if i["country"] != None:
-                i["name"] += " " + i["country"]
-            institutes.append(i)
+#     if response.ok:
+#         results = response.json()['results']
+#         for i in results:
+#             if i["id"] == None:
+#                 continue
+#             if i["country"] != None:
+#                 i["name"] += " " + i["country"]
+#             institutes.append(i)
     
-    if len(institutes) > 0:
-        with open("institutes.json", "w", encoding="utf-8") as f:
-            json.dump(institutes, f, indent=2, ensure_ascii=False)
-    else:
-        print("No institutes")
+#     if len(institutes) > 0:
+#         with open("institutes.json", "w", encoding="utf-8") as f:
+#             json.dump(institutes, f, indent=2, ensure_ascii=False)
+#     else:
+#         print("No institutes")
         
-    return
+#     return
     
-def initializeDatasets():
-    datasets = []
+# def initializeDatasets():
+#     datasets = []
 
-    url = generate_obis_url('dataset', None)
-    response = requests.get(url)
+#     url = generate_obis_url('dataset', None)
+#     response = requests.get(url)
 
-    if response.ok:
-        results = response.json()['results']
-        for i in results:
-            if i["id"] == None:
-                continue
-            datasets.append(i)
+#     if response.ok:
+#         results = response.json()['results']
+#         for i in results:
+#             if i["id"] == None:
+#                 continue
+#             datasets.append(i)
     
-    if len(datasets) > 0:
-        with open("datasets.json", "w", encoding="utf-8") as f:
-            json.dump(datasets, f, indent=2, ensure_ascii=False)
-    else:
-        print("No datasets")
+#     if len(datasets) > 0:
+#         with open("datasets.json", "w", encoding="utf-8") as f:
+#             json.dump(datasets, f, indent=2, ensure_ascii=False)
+#     else:
+#         print("No datasets")
         
-    return
+#     return
 
-def getData(path, queryType):
-    if os.path.exists(path) == False:
-        match queryType:
-            case "areaid":
-                initializeAreaIds()
-            case "institute":
-                initializeInstitutes()
-            case "dataset":
-                initializeDatasets()
-            case _:
-                pass
+# def getData(queryType):
+#     path = f"{queryType}.json"
+#     if os.path.exists(path) == False:
+#         match queryType:
+#             case "areas":
+#                 initializeAreaIds()
+#             case "institutes":
+#                 initializeInstitutes()
+#             case "datasets":
+#                 initializeDatasets()
+#             case _:
+#                 pass
 
-    with open(path, "r") as f:
-        entity = json.load(f)
+#     with open(path, "r") as f:
+#         entity = json.load(f)
 
-    return entity
+#     return entity
 
 def setup():
+    dataLoader.initializeAreaIds()
+    dataLoader.initializeDatasets()
+    dataLoader.initializeInstitutes()
     pass
 
 
@@ -189,7 +198,7 @@ async def getAreaId(query):
                     ret.append({"name": x.get('name', ''), "id":x.get('id', '')})
             return url, ret
 
-    areas = getData("areas.json", "areaid")
+    areas = dataLoader.getData("areas")
     
     query = query.lower()
     matches = [
@@ -202,8 +211,8 @@ async def getAreaId(query):
     # print(matches)
     return None, matches
 
-async def getInstituteId(query):
-    institutes = getData("institutes.json", "institute")
+async def getInstituteId_old(query):
+    institutes = dataLoader.getData("institutes")
 
     query_dict = {"name": query.get("institute")}
 
@@ -215,6 +224,38 @@ async def getInstituteId(query):
     matches = await hybrid_match(query=query_dict, query_options=institutes, weights=[0.7,0.3])
     # print(matches)
     return matches
+
+async def getMatches(query, type):
+    print(query)
+    embedding_matches = embedding.get_matches(query, type)
+    ngrams_matches = ngrams.search(query, type)
+
+    print(embedding_matches)
+    print(ngrams_matches)
+
+    hybrid_matches = {}
+
+    for metadata, score in embedding_matches:
+        hybrid_matches[metadata['id']] = metadata
+        hybrid_matches[metadata['id']]['score'] = 0.7 * float(score)
+
+    for metadata,score in ngrams_matches:
+        if metadata['id'] not in hybrid_matches:
+            hybrid_matches[metadata['id']] = metadata
+            hybrid_matches[metadata['id']]['score'] = 0.3 * score
+        else:
+            hybrid_matches[metadata['id']]['score'] += 0.3 * score
+
+    print(hybrid_matches)
+
+    matches = sorted(hybrid_matches.items(), key=lambda item: item[1]['score'], reverse=True)
+
+    matches = [i[1] for i in matches]
+
+    print(matches)
+    
+    return matches
+
 
 # function to get best match
 async def fn(query, choice):
@@ -452,7 +493,8 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                 return True
             
             case "datasetname":
-                datasetFetchUrl, datasets = await getDatasetId(params.get("datasetname"))
+                # datasetFetchUrl, datasets = await getDatasetId(params.get("datasetname"))
+                datasets = await getMatches(params.get("datasetname"), "datasets")
 
                 if not datasets or len(datasets) == 0:
                     await exceptionHandler(process, None, "The dataset specified doesn't match any OBIS list of datasets")
@@ -460,10 +502,10 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                 
                 if len(datasets) > 1:
                     # exceptionHandler(process, None, "Multiple datasets found for the given query")
-                    content = "Multiple datasets matches found: " + datasets[0][1]
+                    content = "Multiple datasets matches found: " + datasets[0]['title']
                     for i in datasets[1:]:
                         content += ", "
-                        content += i[1]
+                        content += i['title']
 
                     await process.log(content)
 
@@ -479,12 +521,13 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                     # )
                     # return False
 
-                params[resolveToParam] = datasets[0][0]
+                params[resolveToParam] = datasets[0]['id']
                 del params['datasetname']
                 return True
             
             case "institute":
-                institutes = await getInstituteId(params)
+                # institutes = await getInstituteId(params)
+                institutes = await getMatches(params.get('institute'), "institutes")
                 if not institutes or len(institutes) == 0:
                     await process.log("OBIS doesn't have any institutes named " + params["institute"])
                     return False
@@ -505,30 +548,31 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
                 return True
             
             case "area":
-                url, matches = await getAreaId(params.get("area"))
+                # url, matches = await getAreaId(params.get("area"))
+                matches = await getMatches(params.get('area'), 'areas')
                 if not matches or len(matches) == 0:
                     await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                     return False
                 if len(matches) > 1:
-                    if url == None:
-                        await process.log("Multiple area matches found")
-                        areas = ""+matches[0].get("id",'')
-                        for match in matches[1:]:
-                            areas+=","
-                            areas+=match.get("id")
-                        if len(areas) == 0:
-                            await exceptionHandler(process, None, "The area specified doesn't match any OBIS supported list of areas")
-                            return False
-                        params[resolveToParam] = areas
-                        del params["area"]
-                    else:
-                        for match in matches:
-                            if match.get('id', '') != '':
-                                params[resolveToParam] = match.get('id')
-                                del params["area"]
-                                return True   
-                        await exceptionHandler(process, None, "The area specified doesn't match any OBIS supported list of areas")
-                        return False
+                    # if url == None:
+                    #     await process.log("Multiple area matches found")
+                    #     areas = ""+matches[0].get("id",'')
+                    #     for match in matches[1:]:
+                    #         areas+=","
+                    #         areas+=match.get("id")
+                    #     if len(areas) == 0:
+                    #         await exceptionHandler(process, None, "The area specified doesn't match any OBIS supported list of areas")
+                    #         return False
+                    #     params[resolveToParam] = areas
+                    #     del params["area"]
+                    # else:
+                    for match in matches:
+                        if match.get('id', '') != '':
+                            params[resolveToParam] = match.get('id')
+                            del params["area"]
+                            return True   
+                    await exceptionHandler(process, None, "The area specified doesn't match any OBIS supported list of areas")
+                    return False
                 else:
                     if matches[0].get('id', '') != '':
                         params[resolveToParam] = matches[0].get('id')
