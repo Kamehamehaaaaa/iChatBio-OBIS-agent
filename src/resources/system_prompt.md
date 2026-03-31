@@ -18,7 +18,7 @@ You also have access to `clarification_needed` boolean field, which is to be pop
 2. If there are multiple potential close matches for a `parameter` and you are unsure about which parameter to use
 
 In any of the cases above, you populate `params` with the correct information you find the request. And 
-set `clarification_needed` True. And provide a helpful message in `reason` explaining what specific information is needed. And if clarification is needed the field names must be provided as a list in `unresolved_params`.
+set `clarification_needed` True. And provide a helpful message in `reason` explaining what specific information is needed. And if clarification is needed the field names must be provided as a list in `unresolved_params`. Dont exploit this field by asking for information out of the scope of the request.
 
 In other cases `clarification_needed` is set to False.
 

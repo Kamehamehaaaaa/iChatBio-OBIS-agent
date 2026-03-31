@@ -8,6 +8,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from agent import OBISAgent
 
+TEST_CONTEXT_ID = "617727d1-4ce8-4902-884c-db786854b51c"
 
 @pytest_asyncio.fixture()
 def agent():
@@ -36,12 +37,10 @@ class InMemoryResponseChannel(ResponseChannel):
 
     def __init__(self, message_buffer: list):
         self.message_buffer = message_buffer
+        self.task_id = TEST_CONTEXT_ID
 
-    async def submit(self, message: ResponseMessage, context_id: str):
+    async def submit(self, message: ResponseMessage):#, context_id: str):
         self.message_buffer.append(message)
-
-
-TEST_CONTEXT_ID = "617727d1-4ce8-4902-884c-db786854b51c"
 
 
 @pytest.fixture(scope="module")
@@ -56,4 +55,4 @@ def context(messages) -> ResponseContext:
     A special test context which gathers agent response messages as they are generated. Messages that do not occur
     within a process block are assigned the context_id ``"617727d1-4ce8-4902-884c-db786854b51c"``.
     """
-    return ResponseContext(InMemoryResponseChannel(messages), TEST_CONTEXT_ID)
+    return ResponseContext(InMemoryResponseChannel(messages))#, TEST_CONTEXT_ID)

@@ -23,7 +23,7 @@ class OBISAgent(IChatBioAgent):
         return AgentCard(
             name="Ocean Biodiversity Information Systems data source",
             description="Retrieves data from OBIS (https://api.obis.org).",
-            icon=None,
+            icon_url="https://obis.org/images/logo_simple.png",
             entrypoints=[
                 get_occurrence.entrypoint,
                 checklist.entrypoint,

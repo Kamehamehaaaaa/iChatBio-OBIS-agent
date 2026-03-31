@@ -26,7 +26,7 @@ async def test_run_occurrence_basic_success():
     }
 
     with patch("entrypoints.get_occurrence.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,[{"areaid": "123"}]))), \
+         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,[{"id": "123"}]))), \
          patch("entrypoints.get_occurrence.requests.get", return_value=mock_response):
         
         await get_occurrence.run("Find occurrences of brachyura", mock_context)
@@ -162,7 +162,7 @@ async def test_run_occurrence_non_ok_response():
     mock_response.status_code = 500
 
     with patch("entrypoints.get_occurrence.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,[{"areaid": "999"}]))), \
+         patch("entrypoints.get_occurrence.utils.getAreaId", AsyncMock(return_value=(None,[{"id": "999"}]))), \
          patch("entrypoints.get_occurrence.requests.get", return_value=mock_response):
 
         await get_occurrence.run("Find occurrences of brachyura", mock_context)
@@ -183,9 +183,9 @@ async def test_multiple_area_matches():
     }
 
     mock_areas = [
-        {"areaid": "123"},
-        {"areaid": "456"},
-        {"areaid": "789"}
+        {"id": "123"},
+        {"id": "456"},
+        {"id": "789"}
     ]
 
     mock_response = MagicMock()
@@ -430,9 +430,9 @@ async def test_resolve_params_multiple_area_matches():
 
     # Simulate multiple matches returned from OBIS
     mock_matches = [
-        {"areaid": "A1"},
-        {"areaid": "A2"},
-        {"areaid": "A3"},
+        {"id": "A1"},
+        {"id": "A2"},
+        {"id": "A3"},
     ]
 
     # Patch getAreaId only (NOT resolveParams)

@@ -171,7 +171,7 @@ async def test_institute_multiple_area_matches():
         "clarification_needed": False
     }
 
-    mock_areas = None,[{"areaid": "A1"}, {"areaid": "A2"}]
+    mock_areas = None,[{"id": "A1"}, {"id": "A2"}]
 
     mock_response = MagicMock()
     mock_response.ok = True

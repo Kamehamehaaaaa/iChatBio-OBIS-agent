@@ -506,6 +506,7 @@ async def resolveParams(params: dict, parameter: str, resolveToParam: str, proce
             
             case "area":
                 url, matches = await getAreaId(params.get("area"))
+                # print(matches)
                 if not matches or len(matches) == 0:
                     await exceptionHandler(process, None, "The area specified doesn't match any OBIS list of areas")
                     return False

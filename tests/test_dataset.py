@@ -26,7 +26,7 @@ async def test_run_dataset_basic_success():
     }
 
     with patch("entrypoints.dataset.search._generate_search_parameters", AsyncMock(return_value=mock_llm_response)), \
-         patch("entrypoints.dataset.utils.getAreaId", AsyncMock(return_value=[None,{"areaid": "A1"}])), \
+         patch("entrypoints.dataset.utils.getAreaId", AsyncMock(return_value=[None,[{"id": "A1"}]])), \
          patch("entrypoints.dataset.requests.get", return_value=mock_response):
         
         await dataset.run("Find datasets of brachyura in Atlantic Ocean", mock_context)
@@ -209,7 +209,7 @@ async def test_dataset_multiple_area_matches():
     mock_context.begin_process.return_value.__aenter__.return_value = mock_process
 
     llm_response = {"params": {"species": "brachyura", "area": "Atlantic"}, "clarification_needed": False}
-    mock_areas = (None, [{"areaid": "A1"}, {"areaid": "A2"}])
+    mock_areas = (None, [{"id": "A1"}, {"id": "A2"}])
     mock_response = MagicMock(ok=True, status_code=200)
     mock_response.json.return_value = {"total": 2, "results": [{"id": 1}]}
 
