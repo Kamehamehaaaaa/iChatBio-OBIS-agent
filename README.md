@@ -28,7 +28,7 @@ The system achieves this by:
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[Call endpoint] --> B[Generate Search Parameters]
 
     B --> C[Build Endpoint specific System Prompt]
