@@ -50,7 +50,7 @@ async def _generate_search_parameters(request: str, entrypoint: AgentEntrypoint,
 
     response_model = await create_response_model(returnModel)
         
-    client = AsyncOpenAI(api_key=utils.getValue("OPEN_API_KEY"), base_url=utils.getValue("OPENAI_BASE_URL"))
+    client = AsyncOpenAI(api_key=utils.getValue("OPENAI_API_KEY"), base_url=utils.getValue("OPENAI_BASE_URL"))
     
     instructor_client = instructor.patch(client)
 

@@ -608,10 +608,10 @@
 ## Example 2 - When the request has a scientific name.
 
 ```
-"Request": "Search for Egregia menziesii"
+"Request": "list species in family brachyura"
 "Response": {
     "params": {
-        "scientificname": "Egregia menziesii"
+        "scientificname": "brachyura"
     },
     "unresolved_params": null,
     "clarification_needed": False,

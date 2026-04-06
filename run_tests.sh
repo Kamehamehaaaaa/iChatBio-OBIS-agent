@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e  # exit on error
-
 PUBLISH=false
 
 # Parse args
@@ -20,6 +18,8 @@ REPORT_DIR="$REPORTS_BASE_DIR/report_$DATE"
 
 echo "🧪 Running pytest..."
 python -m pytest --alluredir=$RESULTS_DIR
+PYTEST_EXIT_CODE=$?
+set -e
 
 echo "📊 Generating Allure report..."
 allure generate $RESULTS_DIR -o $REPORT_DIR --clean --single-file

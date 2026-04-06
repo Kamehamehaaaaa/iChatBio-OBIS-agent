@@ -1,8 +1,8 @@
 [
   {
     "query": "Show me Gadus morhua occurrences after 2010",
+    "endpoint": "get_occurrence",
     "expected": {
-      "endpoint": "get_occurrence",
       "params": {
             "scientificname": "Gadus morhua",
             "startdate": "01-01-2010"
@@ -11,9 +11,9 @@
     }
   },
   {
-    "query": "how many records of Gadus morhua in australia",
+    "query": "year wise count of Gadus morhua in australia",
+    "endpoint": "statistics",
     "expected": {
-      "endpoint": "statistics",
       "params": {
             "scientificname": "Gadus morhua",
             "area": "australia"
@@ -23,22 +23,83 @@
   },
   {
     "query": "show records from Azores",
+    "endpoint": "get_occurrence",
     "expected": {
-      "endpoint": "get_occurrence",
       "params": {
-            "areaid": "195"
+            "area": "Azores"
         },
         "url": "https://api.obis.org/occurrence?areaid=195"
     }
   },
   {
     "query": "What is the AphiaID of Egregia menziesii?",
+    "endpoint": "taxon",
     "expected": {
-      "endpoint": "taxon",
       "params": {
             "scientificname": "Egregia menziesii"
         },
         "url": "https://api.obis.org/taxon/Egregia%20menziesii"
+    }
+  },
+  {
+    "query": "occurrences of Delphinus delphis worldwide",
+    "endpoint": "get_occurrence",
+    "expected": {
+      "params": {
+        "scientificname": "Delphinus delphis"
+      },
+      "url": "https://api.obis.org/occurrence?scientificname=Delphinus+delphis"
+    }
+  },
+  {
+    "query": "checklist of species in Gulf of Mexico",
+    "endpoint": "checklist",
+    "expected": {
+      "params": {
+        "area": "Gulf of Mexico"
+      },
+      "url": "https://api.obis.org/checklist?areaid=34288"
+    }
+  },
+  {
+    "query": "occurrences of Thunnus albacares in Pacific Ocean",
+    "endpoint": "get_occurrence",
+    "expected": {
+      "params": {
+        "scientificname": "Thunnus albacares",
+        "area": "Pacific Ocean"
+      },
+      "url": "https://api.obis.org/occurrence?scientificname=Thunnus+albacares&areaid=31908"
+    }
+  },
+  {
+    "query": "list species in family Brachyura",
+    "endpoint": "checklist",
+    "expected": {
+      "params": {
+        "scientificname": "Brachyura"
+      },
+      "url": "https://api.obis.org/checklist?scientificname=Brachyura"
+    }
+  },
+  {
+    "query": "marine species recorded in Indian Ocean",
+    "endpoint": "checklist",
+    "expected": {
+      "params": {
+        "area": "Indian Ocean"
+      },
+      "url": "https://api.obis.org/checklist?areaid=114"
+    }
+  },
+  {
+    "query": "tuna observations by year",
+    "endpoint": "statistics",
+    "expected": {
+      "params": {
+        "scientificname": "Thunnus"
+      },
+      "url": "https://api.obis.org/statistics/years?taxonid=127029"
     }
   }
 ]
